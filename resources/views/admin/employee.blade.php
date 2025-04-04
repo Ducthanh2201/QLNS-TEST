@@ -11,49 +11,78 @@
 @section('content')
 <div class="row">
     <div class="col-12">
+        @if (session('success'))
+        <div class="alert alert-success alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+            <h5><i class="icon fas fa-check"></i> Thành công!</h5>
+            {{ session('success') }}
+        </div>
+        @endif
+
+        @if (session('error'))
+        <div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+            <h5><i class="icon fas fa-ban"></i> Lỗi!</h5>
+            {{ session('error') }}
+        </div>
+        @endif
+
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">Danh sách nhân viên</h3>
                 <div class="card-tools">
-                    <div class="input-group input-group-sm" style="width: 250px;">
-                        <input type="text" name="table_search" class="form-control float-right" placeholder="Tìm kiếm nhân viên...">
-                        <div class="input-group-append">
-                            <button type="submit" class="btn btn-default">
-                                <i class="fas fa-search"></i>
-                            </button>
+                    <form action="{{ route('admin.employees.index') }}" method="GET">
+                        <div class="input-group input-group-sm" style="width: 250px;">
+                            <input type="text" name="search" id="searchInput" class="form-control float-right" 
+                                placeholder="Tìm kiếm nhân viên..." value="{{ request('search') }}">
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-default">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
             <!-- /.card-header -->
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-3">
                     <div>
-                        <button class="btn btn-success">
+                        <a href="{{ route('admin.employees.create') }}" class="btn btn-success">
                             <i class="fas fa-user-plus"></i> Thêm nhân viên
-                        </button>
-                        <button class="btn btn-primary ml-2">
+                        </a>
+                        <button class="btn btn-primary ml-2" id="exportExcel">
                             <i class="fas fa-file-excel"></i> Xuất Excel
                         </button>
-                        <button class="btn btn-danger ml-2">
+                        <button class="btn btn-danger ml-2" id="exportPdf">
                             <i class="fas fa-file-pdf"></i> Xuất PDF
                         </button>
                     </div>
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-default">Lọc theo phòng ban</button>
-                        <button type="button" class="btn btn-default dropdown-toggle dropdown-icon" data-toggle="dropdown">
-                            <span class="sr-only">Toggle Dropdown</span>
-                        </button>
-                        <div class="dropdown-menu" role="menu">
-                            <a class="dropdown-item" href="#">Tất cả</a>
-                            <a class="dropdown-item" href="#">Kỹ thuật</a>
-                            <a class="dropdown-item" href="#">Kinh doanh</a>
-                            <a class="dropdown-item" href="#">Nhân sự</a>
-                            <a class="dropdown-item" href="#">Marketing</a>
-                            <a class="dropdown-item" href="#">Tài chính</a>
-                            <a class="dropdown-item" href="#">Hành chính</a>
-                            <a class="dropdown-item" href="#">IT</a>
-                            <a class="dropdown-item" href="#">Pháp lý</a>
+                    <div>
+                        <div class="btn-group mr-2">
+                            <button type="button" class="btn btn-default">Hiển thị trạng thái</button>
+                            <button type="button" class="btn btn-default dropdown-toggle dropdown-icon" data-toggle="dropdown">
+                                <span class="sr-only">Toggle Dropdown</span>
+                            </button>
+                            <div class="dropdown-menu" role="menu">
+                                <a class="dropdown-item" href="{{ route('admin.employees.index') }}">Tất cả nhân viên</a>
+                                <a class="dropdown-item" href="{{ route('admin.employees.index', ['status' => 0]) }}">Nhân viên nghỉ làm</a>
+                                <a class="dropdown-item" href="{{ route('admin.employees.index', ['status' => 1]) }}">Nhân viên đang làm việc</a>
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-default">Lọc theo chức vụ</button>
+                            <button type="button" class="btn btn-default dropdown-toggle dropdown-icon" data-toggle="dropdown">
+                                <span class="sr-only">Toggle Dropdown</span>
+                            </button>
+                            <div class="dropdown-menu" role="menu">
+                                <a class="dropdown-item" href="{{ route('admin.employees.index') }}">Tất cả</a>
+                                @foreach ($positions = \App\Models\Position::all() as $position)
+                                    <a class="dropdown-item" href="{{ route('admin.employees.index', ['position' => $position->IDCV]) }}">
+                                        {{ $position->TenCV }}
+                                    </a>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -72,7 +101,6 @@
                                 <th>Ảnh</th>
                                 <th>Họ và Tên</th>
                                 <th>Mã NV</th>
-                                <th>Phòng ban</th>
                                 <th>Chức vụ</th>
                                 <th>Email</th>
                                 <th>SĐT</th>
@@ -81,179 +109,64 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @foreach ($employees ?? [] as $index => $employee)
                             <tr>
                                 <td>
                                     <div class="custom-control custom-checkbox">
-                                        <input class="custom-control-input" type="checkbox" id="check1">
-                                        <label for="check1" class="custom-control-label"></label>
+                                        <input class="custom-control-input" type="checkbox" id="check{{ $employee->MaNV }}">
+                                        <label for="check{{ $employee->MaNV }}" class="custom-control-label"></label>
                                     </div>
                                 </td>
-                                <td>1</td>
+                                <td>{{ $index + 1 }}</td>
                                 <td>
-                                    <img src="https://adminlte.io/themes/v3/dist/img/user1-128x128.jpg" alt="Avatar" class="img-circle" width="40">
+                                    @if ($employee->HinhAnh)
+                                        <img src="{{ asset('nhanvien/'.$employee->HinhAnh) }}" alt="Avatar" class="img-circle" width="40" onerror="this.src='{{ asset('img/default-avatar.jpg') }}'">
+                                    @else
+                                        <img src="{{ asset('img/default-avatar.jpg') }}" alt="Avatar" class="img-circle" width="40">
+                                    @endif
                                 </td>
-                                <td>Nguyễn Văn A</td>
-                                <td>NV001</td>
-                                <td>Kỹ thuật</td>
-                                <td>Trưởng phòng</td>
-                                <td>a@example.com</td>
-                                <td>0901234567</td>
-                                <td><span class="badge bg-success">Đang làm việc</span></td>
+                                <td>{{ $employee->TenNV }}</td>
+                                <td>{{ $employee->MaNV }}</td>
+                                <td>{{ $employee->position ? $employee->position->TenCV : 'N/A' }}</td>
+                                <td>{{ $employee->email }}</td>
+                                <td>{{ $employee->DienThoai }}</td>
+                                <td>
+                                    @if($employee->TrangThai == 1)
+                                        <span class="badge badge-success">Đang làm việc</span>
+                                    @elseif($employee->TrangThai == 0)
+                                        <span class="badge badge-secondary">Nghỉ làm</span>
+                                    @elseif($employee->TrangThai == 2)
+                                        <span class="badge badge-danger">Đã xóa</span>
+                                    @endif
+                                </td>
                                 <td>
                                     <div class="btn-group">
-                                        <button type="button" class="btn btn-info btn-sm" title="Xem chi tiết">
+                                        <button type="button" class="btn btn-info btn-sm view-btn" data-id="{{ $employee->MaNV }}" title="Xem chi tiết">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button type="button" class="btn btn-primary btn-sm" title="Sửa">
+                                        <a href="{{ route('admin.employees.edit', $employee->MaNV) }}" class="btn btn-primary btn-sm" title="Sửa">
                                             <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-danger btn-sm" title="Xóa">
+                                        </a>
+                                        <form action="{{ route('admin.employees.toggle-status', $employee->MaNV) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-{{ $employee->TrangThai == 1 ? 'warning' : 'success' }} btn-sm" title="{{ $employee->TrangThai == 1 ? 'Vô hiệu hóa' : 'Kích hoạt' }}">
+                                                <i class="fas fa-{{ $employee->TrangThai == 1 ? 'user-slash' : 'user-check' }}"></i>
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm delete-btn" data-id="{{ $employee->MaNV }}" title="Xóa">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
-                                <td>
-                                    <div class="custom-control custom-checkbox">
-                                        <input class="custom-control-input" type="checkbox" id="check2">
-                                        <label for="check2" class="custom-control-label"></label>
-                                    </div>
-                                </td>
-                                <td>2</td>
-                                <td>
-                                    <img src="https://adminlte.io/themes/v3/dist/img/user8-128x128.jpg" alt="Avatar" class="img-circle" width="40">
-                                </td>
-                                <td>Trần Thị B</td>
-                                <td>NV002</td>
-                                <td>Kinh doanh</td>
-                                <td>Nhân viên</td>
-                                <td>b@example.com</td>
-                                <td>0901234568</td>
-                                <td><span class="badge bg-success">Đang làm việc</span></td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-info btn-sm" title="Xem chi tiết">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-primary btn-sm" title="Sửa">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-danger btn-sm" title="Xóa">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="custom-control custom-checkbox">
-                                        <input class="custom-control-input" type="checkbox" id="check3">
-                                        <label for="check3" class="custom-control-label"></label>
-                                    </div>
-                                </td>
-                                <td>3</td>
-                                <td>
-                                    <img src="https://adminlte.io/themes/v3/dist/img/user3-128x128.jpg" alt="Avatar" class="img-circle" width="40">
-                                </td>
-                                <td>Lê Văn C</td>
-                                <td>NV003</td>
-                                <td>Nhân sự</td>
-                                <td>Trưởng phòng</td>
-                                <td>c@example.com</td>
-                                <td>0901234569</td>
-                                <td><span class="badge bg-success">Đang làm việc</span></td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-info btn-sm" title="Xem chi tiết">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-primary btn-sm" title="Sửa">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-danger btn-sm" title="Xóa">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="custom-control custom-checkbox">
-                                        <input class="custom-control-input" type="checkbox" id="check4">
-                                        <label for="check4" class="custom-control-label"></label>
-                                    </div>
-                                </td>
-                                <td>4</td>
-                                <td>
-                                    <img src="https://adminlte.io/themes/v3/dist/img/user4-128x128.jpg" alt="Avatar" class="img-circle" width="40">
-                                </td>
-                                <td>Phạm Thị D</td>
-                                <td>NV004</td>
-                                <td>Marketing</td>
-                                <td>Nhân viên</td>
-                                <td>d@example.com</td>
-                                <td>0901234570</td>
-                                <td><span class="badge bg-warning">Tạm nghỉ</span></td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-info btn-sm" title="Xem chi tiết">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-primary btn-sm" title="Sửa">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-danger btn-sm" title="Xóa">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="custom-control custom-checkbox">
-                                        <input class="custom-control-input" type="checkbox" id="check5">
-                                        <label for="check5" class="custom-control-label"></label>
-                                    </div>
-                                </td>
-                                <td>5</td>
-                                <td>
-                                    <img src="https://adminlte.io/themes/v3/dist/img/user5-128x128.jpg" alt="Avatar" class="img-circle" width="40">
-                                </td>
-                                <td>Hoàng Văn E</td>
-                                <td>NV005</td>
-                                <td>Tài chính</td>
-                                <td>Nhân viên</td>
-                                <td>e@example.com</td>
-                                <td>0901234571</td>
-                                <td><span class="badge bg-danger">Đã nghỉ việc</span></td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-info btn-sm" title="Xem chi tiết">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-primary btn-sm" title="Sửa">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-danger btn-sm" title="Xóa">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
             </div>
             <!-- /.card-body -->
             <div class="card-footer clearfix">
-                <ul class="pagination pagination-sm m-0 float-right">
-                    <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
-                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
-                </ul>
+                {{ $employees->appends(request()->query())->links() }}
             </div>
         </div>
         <!-- /.card -->
@@ -271,59 +184,41 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-4 text-center">
-                        <img src="https://adminlte.io/themes/v3/dist/img/user1-128x128.jpg" alt="Avatar" class="img-circle" width="150">
-                        <h4 class="mt-3">Nguyễn Văn A</h4>
-                        <p class="text-muted">Trưởng phòng Kỹ thuật</p>
-                    </div>
-                    <div class="col-md-8">
-                        <div class="table-responsive">
-                            <table class="table">
-                                <tr>
-                                    <th style="width:30%">Mã nhân viên:</th>
-                                    <td>NV001</td>
-                                </tr>
-                                <tr>
-                                    <th>Họ và tên:</th>
-                                    <td>Nguyễn Văn A</td>
-                                </tr>
-                                <tr>
-                                    <th>Email:</th>
-                                    <td>a@example.com</td>
-                                </tr>
-                                <tr>
-                                    <th>Số điện thoại:</th>
-                                    <td>0901234567</td>
-                                </tr>
-                                <tr>
-                                    <th>Ngày sinh:</th>
-                                    <td>01/01/1990</td>
-                                </tr>
-                                <tr>
-                                    <th>Giới tính:</th>
-                                    <td>Nam</td>
-                                </tr>
-                                <tr>
-                                    <th>Địa chỉ:</th>
-                                    <td>123 Đường ABC, Quận 1, TP. Hồ Chí Minh</td>
-                                </tr>
-                                <tr>
-                                    <th>Ngày vào làm:</th>
-                                    <td>01/01/2020</td>
-                                </tr>
-                                <tr>
-                                    <th>Trạng thái:</th>
-                                    <td><span class="badge bg-success">Đang làm việc</span></td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+                <!-- Nội dung chi tiết nhân viên sẽ được load bằng AJAX -->
+                <div id="employee-detail-content"></div>
             </div>
             <div class="modal-footer justify-content-between">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary">Chỉnh sửa</button>
+                <a href="#" id="edit-employee-link" class="btn btn-primary">Chỉnh sửa</a>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+
+<!-- Modal xác nhận xóa nhân viên -->
+<div class="modal fade" id="deleteModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger">
+                <h4 class="modal-title">Xác nhận xóa</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa nhân viên này không?</p>
+                <p class="font-italic text-muted">Lưu ý: Nhân viên sẽ được đánh dấu là đã xóa và không hiển thị trong danh sách. Bạn có thể khôi phục lại từ dữ liệu gốc sau này.</p>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Hủy</button>
+                <form id="deleteForm" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                </form>
             </div>
         </div>
         <!-- /.modal-content -->
@@ -337,8 +232,30 @@
 <script>
     $(function () {
         // Xử lý khi click vào nút xem chi tiết
-        $('.btn-info').on('click', function() {
-            $('#employeeDetailModal').modal('show');
+        $('.view-btn').on('click', function() {
+            var employeeId = $(this).data('id');
+            $('#edit-employee-link').attr('href', '{{ route("admin.employees.index") }}/' + employeeId + '/edit');
+            
+            // Load dữ liệu nhân viên vào modal
+            $.ajax({
+                url: '{{ route("admin.employees.index") }}/' + employeeId,
+                type: 'GET',
+                dataType: 'html',
+                success: function(data) {
+                    $('#employee-detail-content').html(data);
+                    $('#employeeDetailModal').modal('show');
+                },
+                error: function() {
+                    alert('Có lỗi xảy ra khi tải thông tin nhân viên!');
+                }
+            });
+        });
+        
+        // Xử lý khi click vào nút xóa
+        $('.delete-btn').on('click', function() {
+            var employeeId = $(this).data('id');
+            $('#deleteForm').attr('action', '{{ route("admin.employees.index") }}/' + employeeId);
+            $('#deleteModal').modal('show');
         });
         
         // Chọn/bỏ chọn tất cả
@@ -348,6 +265,24 @@
             } else {
                 $('tbody input[type="checkbox"]').prop('checked', false);
             }
+        });
+        
+        // Tìm kiếm
+        $('#searchInput').on('keyup', function() {
+            var value = $(this).val().toLowerCase();
+            $('table tbody tr').filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+        
+        // Xuất Excel
+        $('#exportExcel').on('click', function() {
+            window.location.href = '{{ route("admin.employees.index") }}?export=excel';
+        });
+        
+        // Xuất PDF
+        $('#exportPdf').on('click', function() {
+            window.location.href = '{{ route("admin.employees.index") }}?export=pdf';
         });
     });
 </script>

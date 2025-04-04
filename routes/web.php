@@ -1,76 +1,70 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\EmployeeAuthController;
+use App\Http\Middleware\EmployeeAuth;
 
-// Trang chủ
+// Thêm dòng này trước các route khác
+Route::redirect('/login', '/login')->name('login');
+
+// Trang chủ - Chuyển hướng đến trang đăng nhập nhân viên
 Route::get('/', function () {
-    return view('welcome');
-});
-
-// Auth Routes
-Route::middleware('guest')->group(function () {
-    // Đăng nhập Admin
-    Route::get('/admin/login', function () {
-        return view('auth.login_admin');
-    })->name('admin.login');
-    
-    Route::post('/admin/login', function () {
-        // Logic xử lý đăng nhập Admin
+    // Kiểm tra nếu đã đăng nhập admin hoặc employee thì chuyển hướng đến trang dashboard tương ứng
+    if (auth('admin')->check()) {
         return redirect()->route('admin.dashboard');
-    })->name('admin.login.post');
+    }
     
-    // Đăng nhập Nhân viên
-    Route::get('/login', function () {
-        return view('auth.login_employee');
-    })->name('employee.login');
-    
-    Route::post('/login', function () {
-        // Logic xử lý đăng nhập Nhân viên
+    if (auth('employee')->check()) {
         return redirect()->route('employee.dashboard');
-    })->name('employee.login.post');
+    }
     
-    // Quên mật khẩu
-    Route::get('/admin/password/reset', function () {
-        return view('auth.forgot_password_admin');
-    })->name('admin.password.request');
-    
-    Route::get('/password/reset', function () {
-        return view('auth.forgot_password_employee');
-    })->name('employee.password.request');
-    
-    // Đăng nhập với tài khoản xã hội
-    Route::get('/auth/google', function () {
-        // Logic xử lý đăng nhập Google
-        return redirect()->route('admin.dashboard');
-    })->name('auth.google');
-    
-    Route::get('/auth/github', function () {
-        // Logic xử lý đăng nhập Github
-        return redirect()->route('admin.dashboard');
-    })->name('auth.github');
+    return redirect()->route('employee.login');
 });
 
-// Đăng xuất
-Route::post('/logout', function () {
-    // Logic xử lý đăng xuất
-    return redirect('/login');
-})->name('logout');
+// Auth Routes cho Admin
+Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
+Route::post('/admin/login', [AdminAuthController::class, 'login']);
+Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin.logout')->middleware('auth:admin');
 
-// Admin Routes
-Route::prefix('admin')->name('admin.')->group(function () {
+// Auth Routes cho Nhân viên
+Route::get('/login', [EmployeeAuthController::class, 'showLoginForm'])->name('employee.login');
+Route::post('/login', [EmployeeAuthController::class, 'login'])->name('employee.login');
+Route::post('/logout', [EmployeeAuthController::class, 'logout'])->name('employee.logout');
+
+// Quên mật khẩu
+Route::get('/admin/password/reset', function () {
+    return view('auth.forgot_password_admin');
+})->name('admin.password.request');
+
+Route::get('/password/reset', function () {
+    return view('auth.forgot_password_employee');
+})->name('employee.password.request');
+
+// Đăng nhập với tài khoản xã hội
+Route::get('/auth/google', function () {
+    // Logic xử lý đăng nhập Google
+    return redirect()->route('admin.dashboard');
+})->name('auth.google');
+
+Route::get('/auth/github', function () {
+    // Logic xử lý đăng nhập Github
+    return redirect()->route('admin.dashboard');
+})->name('auth.github');
+
+// Admin Routes - thêm middleware auth:admin
+Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function () {
     // Dashboard
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
     })->name('dashboard');
     
-    // Employees - Chỉnh sửa đường dẫn file view
-    Route::get('/employees', function () {
-        return view('admin.employee');  // Sửa thành file employee đơn lẻ
-    })->name('employees.index');
+    // Employees - Sử dụng resource controller
+    Route::resource('employees', \App\Http\Controllers\Admin\EmployeeController::class);
     
-    Route::get('/employees/create', function () {
-        return view('admin.employee');  // Tạm thời trỏ vào cùng file
-    })->name('employees.create');
+    // Toggle Employee Status
+    Route::post('/employees/{employee}/toggle-status', [App\Http\Controllers\Admin\EmployeeController::class, 'toggleStatus'])
+        ->name('employees.toggle-status');
     
     // Positions
     Route::get('/positions', function () {
@@ -104,7 +98,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 });
 
 // Employee Routes
-Route::prefix('employee')->name('employee.')->group(function () {
+Route::prefix('employee')->name('employee.')->middleware(EmployeeAuth::class)->group(function () {
     // Dashboard
     Route::get('/dashboard', function () {
         return view('employees.dashboard');
@@ -130,15 +124,15 @@ Route::prefix('employee')->name('employee.')->group(function () {
         return view('employees.salary');
     })->name('salary');
     
-    // Check-in/out
+    // Check-in và Check-out có thể là POST routes
     Route::post('/check-in', function () {
         // Logic xử lý check-in
-        return redirect()->back()->with('success', 'Check-in thành công');
+        return redirect()->back()->with('success', 'Check-in thành công!');
     })->name('check-in');
     
     Route::post('/check-out', function () {
         // Logic xử lý check-out
-        return redirect()->back()->with('success', 'Check-out thành công');
+        return redirect()->back()->with('success', 'Check-out thành công!');
     })->name('check-out');
 });
 

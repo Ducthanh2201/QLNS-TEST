@@ -94,10 +94,10 @@
                 <form action="{{ route('admin.login') }}" method="post">
                     @csrf
                     <div class="input-group mb-3">
-                        <input type="text" name="username" class="form-control @error('username') is-invalid @enderror" placeholder="Tài khoản quản trị" value="{{ old('username') }}" required autofocus>
+                        <input type="email" name="username" class="form-control @error('username') is-invalid @enderror" placeholder="Email quản trị" value="{{ old('username') }}" required autofocus>
                         <div class="input-group-append">
                             <div class="input-group-text">
-                                <span class="fas fa-user"></span>
+                                <span class="fas fa-envelope"></span>
                             </div>
                         </div>
                         @error('username')
@@ -156,7 +156,7 @@
                 <div class="text-center mt-3">
                     <p class="mb-0">
                         <i class="fas fa-user mr-1"></i>
-                        <a href="{{ route('employee.login') }}" class="text-center">
+                        <a href="{{ route('login') }}" class="text-center">
                             Đăng nhập dành cho nhân viên
                         </a>
                     </p>

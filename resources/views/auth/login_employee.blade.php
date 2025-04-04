@@ -212,7 +212,7 @@
                 
                 <div class="card">
                     <div class="card-body">
-                        <form action="{{ route('employee.login') }}" method="post">
+                        <form action="/login" method="post">
                             @csrf
                             <div class="form-group">
                                 <label for="employee_id">Mã nhân viên</label>
@@ -258,7 +258,7 @@
                                     </div>
                                 </div>
                                 <div class="col-4 text-right">
-                                    <a href="{{ route('employee.password.request') }}">Quên mật khẩu?</a>
+                                    <a href="/password/reset">Quên mật khẩu?</a>
                                 </div>
                             </div>
                             
@@ -278,7 +278,7 @@
                     
                     <p class="mb-0">
                         <i class="fas fa-user-shield mr-1"></i>
-                        <a href="{{ route('admin.login') }}" class="text-center">
+                        <a href="/admin/login" class="text-center">
                             Đăng nhập quản trị viên
                         </a>
                     </p>
