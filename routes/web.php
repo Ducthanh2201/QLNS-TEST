@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\EmployeeAuthController;
+use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Middleware\EmployeeAuth;
 
 // Thêm dòng này trước các route khác
@@ -10,15 +11,6 @@ Route::redirect('/login', '/login')->name('login');
 
 // Trang chủ - Chuyển hướng đến trang đăng nhập nhân viên
 Route::get('/', function () {
-    // Kiểm tra nếu đã đăng nhập admin hoặc employee thì chuyển hướng đến trang dashboard tương ứng
-    if (auth('admin')->check()) {
-        return redirect()->route('admin.dashboard');
-    }
-    
-    if (auth('employee')->check()) {
-        return redirect()->route('employee.dashboard');
-    }
-    
     return redirect()->route('employee.login');
 });
 
@@ -100,9 +92,14 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::get('/worktime/update-deleted-statuses', [App\Http\Controllers\Admin\WorkTimeController::class, 'updateDeletedStatuses'])->name('worktime.update-deleted-statuses');
     
     // Attendance
-    Route::get('/attendance', function () {
-        return view('admin.attendance');
-    })->name('attendance.index');
+    Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::post('/attendance', [AttendanceController::class, 'store'])->name('attendance.store');
+    Route::get('/attendance/{attendance}', [AttendanceController::class, 'show'])->name('attendance.show');
+    Route::put('/attendance/{attendance}', [AttendanceController::class, 'update'])->name('attendance.update');
+    Route::delete('/attendance/{attendance}', [AttendanceController::class, 'destroy'])->name('attendance.destroy');
+    Route::get('/attendance/{id}/restore', [AttendanceController::class, 'restore'])->name('attendance.restore');
+    Route::post('/attendance/generate', [AttendanceController::class, 'generate'])->name('attendance.generate');
+    Route::get('/attendance/export', [AttendanceController::class, 'export'])->name('attendance.export');
     
     // Salary
     Route::get('/salary', function () {
@@ -121,15 +118,14 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
 
     // Routes quản lý chấm công
     Route::prefix('attendance')->name('attendance.')->group(function() {
-        // Route::get('/', [App\Http\Controllers\Admin\AttendanceController::class, 'index'])->name('index');
-        // Route::get('/create', [App\Http\Controllers\Admin\AttendanceController::class, 'create'])->name('create');
-        // Route::post('/', [App\Http\Controllers\Admin\AttendanceController::class, 'store'])->name('store');
-        // Route::get('/{id}', [App\Http\Controllers\Admin\AttendanceController::class, 'show'])->name('show');
-        // Route::get('/{id}/edit', [App\Http\Controllers\Admin\AttendanceController::class, 'edit'])->name('edit');
-        // Route::put('/{id}', [App\Http\Controllers\Admin\AttendanceController::class, 'update'])->name('update');
-        // Route::post('/{id}/soft-delete', [App\Http\Controllers\Admin\AttendanceController::class, 'softDelete'])->name('soft-delete');
-        // Route::post('/{id}/restore', [App\Http\Controllers\Admin\AttendanceController::class, 'restore'])->name('restore');
-        // Route::post('/generate-for-all', [App\Http\Controllers\Admin\AttendanceController::class, 'generateForAll'])->name('generate-for-all');
+        Route::get('/', [App\Http\Controllers\Admin\AttendanceController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Admin\AttendanceController::class, 'store'])->name('store');
+        Route::get('/{attendance}', [App\Http\Controllers\Admin\AttendanceController::class, 'show'])->name('show');
+        Route::put('/{attendance}', [App\Http\Controllers\Admin\AttendanceController::class, 'update'])->name('update');
+        Route::delete('/{attendance}', [App\Http\Controllers\Admin\AttendanceController::class, 'destroy'])->name('destroy');
+        Route::get('/{id}/restore', [App\Http\Controllers\Admin\AttendanceController::class, 'restore'])->name('restore');
+        Route::post('/generate', [App\Http\Controllers\Admin\AttendanceController::class, 'generate'])->name('generate');
+        Route::get('/export', [App\Http\Controllers\Admin\AttendanceController::class, 'export'])->name('export');
     });
 });
 

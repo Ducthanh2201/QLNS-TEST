@@ -12,8 +12,8 @@ class Employee extends Authenticatable
 
     protected $table = 'nhanvien';
     protected $primaryKey = 'MaNV';
-    protected $keyType = 'int';
-    public $incrementing = true;
+    protected $keyType = 'string';
+    public $incrementing = false;
     
     // Tắt timestamps
     public $timestamps = false;
@@ -24,16 +24,17 @@ class Employee extends Authenticatable
     const STATUS_DELETED = 2;     // Đã xóa (xóa mềm)
     
     protected $fillable = [
+        'MaNV',
         'TenNV',
-        'email',
-        'Password',
-        'GioiTinh',
-        'NgaySinh',
-        'DienThoai',
-        'CCCD',
-        'DiaChi',
-        'HinhAnh',
         'IDCV',
+        'IDPB',
+        'NgaySinh',
+        'GioiTinh',
+        'DiaChi',
+        'SDT',
+        'Email',
+        'CCCD',
+        'NgayVaoLam',
         'TrangThai'
     ];
 
@@ -63,6 +64,22 @@ class Employee extends Authenticatable
         return $this->belongsTo(Position::class, 'IDCV', 'IDCV');
     }
     
+    /**
+     * Relationship với bảng phòng ban
+     */
+    public function department()
+    {
+        return $this->belongsTo(Department::class, 'IDPB', 'IDPB');
+    }
+
+    /**
+     * Relationship với bảng công/chấm công
+     */
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class, 'MaNV', 'MaNV');
+    }
+
     /**
      * Scope để chỉ lấy nhân viên còn hoạt động (không bị xóa mềm)
      */

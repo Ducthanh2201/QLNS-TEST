@@ -14,7 +14,7 @@
     <div class="col-lg-3 col-6">
         <div class="small-box bg-info">
             <div class="inner">
-                <h3>145</h3>
+                <h3>{{ $statistics['attendedCount'] }}</h3>
                 <p>Đã chấm công hôm nay</p>
             </div>
             <div class="icon">
@@ -27,7 +27,7 @@
     <div class="col-lg-3 col-6">
         <div class="small-box bg-success">
             <div class="inner">
-                <h3>95<sup style="font-size: 20px">%</sup></h3>
+                <h3>{{ $statistics['attendanceRate'] }}<sup style="font-size: 20px">%</sup></h3>
                 <p>Tỷ lệ đi làm hôm nay</p>
             </div>
             <div class="icon">
@@ -40,7 +40,7 @@
     <div class="col-lg-3 col-6">
         <div class="small-box bg-warning">
             <div class="inner">
-                <h3>8</h3>
+                <h3>{{ $statistics['lateEarlyCount'] }}</h3>
                 <p>Đi muộn/về sớm</p>
             </div>
             <div class="icon">
@@ -53,7 +53,7 @@
     <div class="col-lg-3 col-6">
         <div class="small-box bg-danger">
             <div class="inner">
-                <h3>7</h3>
+                <h3>{{ $statistics['absentCount'] }}</h3>
                 <p>Vắng mặt không phép</p>
             </div>
             <div class="icon">
@@ -78,62 +78,77 @@
             </div>
             <div class="card-body">
                 <!-- Filter and controls -->
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">
-                                    <i class="far fa-calendar-alt"></i>
-                                </span>
-                            </div>
-                            <input type="text" class="form-control" id="attendanceDate" value="03/04/2025">
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">
-                                    <i class="fas fa-filter"></i>
-                                </span>
-                            </div>
-                            <select class="form-control" id="departmentFilter">
-                                <option value="0">Tất cả phòng ban</option>
-                                <option value="1">Kỹ thuật</option>
-                                <option value="2">Kinh doanh</option>
-                                <option value="3">Nhân sự</option>
-                                <option value="4">Marketing</option>
-                                <option value="5">Tài chính</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">
-                                    <i class="fas fa-filter"></i>
-                                </span>
-                            </div>
-                            <select class="form-control" id="statusFilter">
-                                <option value="0">Tất cả trạng thái</option>
-                                <option value="1">Đã chấm công</option>
-                                <option value="2">Chưa chấm công</option>
-                                <option value="3">Đi muộn</option>
-                                <option value="4">Về sớm</option>
-                                <option value="5">Vắng mặt</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Tìm nhân viên...">
-                            <div class="input-group-append">
-                                <button class="btn btn-primary" type="button">
-                                    <i class="fas fa-search"></i>
-                                </button>
+                <form action="{{ route('admin.attendance.index') }}" method="GET" id="filterForm">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
+                                    </span>
+                                </div>
+                                <input type="text" class="form-control" id="attendanceDate" name="date" value="{{ $date->format('d/m/Y') }}" onchange="document.getElementById('filterForm').submit()">
                             </div>
                         </div>
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-filter"></i>
+                                    </span>
+                                </div>
+                                <select class="form-control" id="departmentFilter" name="department_id" onchange="document.getElementById('filterForm').submit()">
+                                    <option value="">Tất cả phòng ban</option>
+                                    @foreach($departments as $department)
+                                        <option value="{{ $department->IDPB }}" {{ request('department_id') == $department->IDPB ? 'selected' : '' }}>
+                                            {{ $department->TenPB }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-filter"></i>
+                                    </span>
+                                </div>
+                                <select class="form-control" id="statusFilter" name="status" onchange="document.getElementById('filterForm').submit()">
+                                    <option value="all">Tất cả trạng thái</option>
+                                    <option value="{{ App\Models\Attendance::ATTENDANCE_ONTIME }}" {{ request('status') == App\Models\Attendance::ATTENDANCE_ONTIME ? 'selected' : '' }}>Đúng giờ</option>
+                                    <option value="{{ App\Models\Attendance::ATTENDANCE_LATE }}" {{ request('status') == App\Models\Attendance::ATTENDANCE_LATE ? 'selected' : '' }}>Đi muộn</option>
+                                    <option value="{{ App\Models\Attendance::ATTENDANCE_EARLY_LEAVE }}" {{ request('status') == App\Models\Attendance::ATTENDANCE_EARLY_LEAVE ? 'selected' : '' }}>Về sớm</option>
+                                    <option value="{{ App\Models\Attendance::ATTENDANCE_OVERTIME }}" {{ request('status') == App\Models\Attendance::ATTENDANCE_OVERTIME ? 'selected' : '' }}>Làm thêm giờ</option>
+                                    <option value="{{ App\Models\Attendance::ATTENDANCE_ABSENT }}" {{ request('status') == App\Models\Attendance::ATTENDANCE_ABSENT ? 'selected' : '' }}>Vắng mặt</option>
+                                    <option value="{{ App\Models\Attendance::ATTENDANCE_LEAVE }}" {{ request('status') == App\Models\Attendance::ATTENDANCE_LEAVE ? 'selected' : '' }}>Nghỉ phép</option>
+                                    <option value="{{ App\Models\Attendance::ATTENDANCE_BUSINESS }}" {{ request('status') == App\Models\Attendance::ATTENDANCE_BUSINESS ? 'selected' : '' }}>Công tác</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="search" placeholder="Tìm nhân viên..." value="{{ request('search') }}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="showDeletedRecords" name="show_deleted" 
+                                    {{ request()->boolean('show_deleted') ? 'checked' : '' }}
+                                    onchange="document.getElementById('filterForm').submit()">
+                                <label class="custom-control-label" for="showDeletedRecords">Hiển thị bản ghi đã xóa</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
                 
                 <div class="row mb-3">
                     <div class="col-md-12">
@@ -141,15 +156,15 @@
                             <button type="button" class="btn btn-success" data-toggle="modal" data-target="#manualAttendanceModal">
                                 <i class="fas fa-plus"></i> Chấm công thủ công
                             </button>
-                            <button type="button" class="btn btn-info">
+                            <a href="{{ route('admin.attendance.export') }}" class="btn btn-info">
                                 <i class="fas fa-file-excel"></i> Xuất Excel
+                            </a>
+                            <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#generateModal">
+                                <i class="fas fa-magic"></i> Tạo tự động
                             </button>
-                            <button type="button" class="btn btn-warning">
-                                <i class="fas fa-file-import"></i> Nhập từ file
-                            </button>
-                            <button type="button" class="btn btn-primary">
+                            <a href="{{ route('admin.attendance.index', ['date' => $date->format('d/m/Y')]) }}" class="btn btn-primary">
                                 <i class="fas fa-sync"></i> Làm mới
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -172,157 +187,87 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>
-                                    <img src="https://adminlte.io/themes/v3/dist/img/user1-128x128.jpg" alt="Avatar" class="img-circle mr-2" width="30">
-                                    Nguyễn Văn A
-                                </td>
-                                <td>NV001</td>
-                                <td>Kỹ thuật</td>
-                                <td>03/04/2025</td>
-                                <td>07:55</td>
-                                <td>17:05</td>
-                                <td>8h 10p</td>
-                                <td><span class="badge bg-success">Đúng giờ</span></td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#viewAttendanceModal">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#editAttendanceModal">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-danger btn-sm">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>
-                                    <img src="https://adminlte.io/themes/v3/dist/img/user8-128x128.jpg" alt="Avatar" class="img-circle mr-2" width="30">
-                                    Trần Thị B
-                                </td>
-                                <td>NV002</td>
-                                <td>Kinh doanh</td>
-                                <td>03/04/2025</td>
-                                <td>08:20</td>
-                                <td>17:00</td>
-                                <td>7h 40p</td>
-                                <td><span class="badge bg-warning">Đi muộn</span></td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-info btn-sm">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-primary btn-sm">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-danger btn-sm">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>
-                                    <img src="https://adminlte.io/themes/v3/dist/img/user3-128x128.jpg" alt="Avatar" class="img-circle mr-2" width="30">
-                                    Lê Văn C
-                                </td>
-                                <td>NV003</td>
-                                <td>Nhân sự</td>
-                                <td>03/04/2025</td>
-                                <td>08:00</td>
-                                <td>16:45</td>
-                                <td>7h 45p</td>
-                                <td><span class="badge bg-info">Về sớm</span></td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-info btn-sm">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-primary btn-sm">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-danger btn-sm">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>4</td>
-                                <td>
-                                    <img src="https://adminlte.io/themes/v3/dist/img/user4-128x128.jpg" alt="Avatar" class="img-circle mr-2" width="30">
-                                    Phạm Thị D
-                                </td>
-                                <td>NV004</td>
-                                <td>Marketing</td>
-                                <td>03/04/2025</td>
-                                <td>07:45</td>
-                                <td>17:30</td>
-                                <td>8h 45p</td>
-                                <td><span class="badge bg-purple">Làm thêm giờ</span></td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-info btn-sm">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-primary btn-sm">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-danger btn-sm">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>5</td>
-                                <td>
-                                    <img src="https://adminlte.io/themes/v3/dist/img/user5-128x128.jpg" alt="Avatar" class="img-circle mr-2" width="30">
-                                    Hoàng Văn E
-                                </td>
-                                <td>NV005</td>
-                                <td>Tài chính</td>
-                                <td>03/04/2025</td>
-                                <td>--</td>
-                                <td>--</td>
-                                <td>0h</td>
-                                <td><span class="badge bg-danger">Vắng mặt</span></td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-info btn-sm">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-primary btn-sm">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-danger btn-sm">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                            @forelse($attendances as $index => $attendance)
+                                <tr class="{{ $attendance->isDeleted() ? 'text-muted bg-light' : '' }}">
+                                    <td>{{ $attendances->firstItem() + $index }}</td>
+                                    <td>
+                                        <img src="{{ asset('img/default-avatar.jpg') }}" alt="Avatar" class="img-circle mr-2" width="30">
+                                        {{ $attendance->employee->TenNV ?? 'N/A' }}
+                                    </td>
+                                    <td>{{ $attendance->employee->MaNV ?? 'N/A' }}</td>
+                                    <td>{{ $attendance->employee->department->TenPB ?? 'N/A' }}</td>
+                                    <td>{{ $attendance->formattedDate }}</td>
+                                    <td>{{ $attendance->checkInTime }}</td>
+                                    <td>{{ $attendance->checkOutTime }}</td>
+                                    <td>{{ $attendance->totalWorkTime }}</td>
+                                    <td>
+                                        <span class="badge {{ $attendance->statusClass }}">
+                                            {{ $attendance->statusText }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if($attendance->isDeleted())
+                                            <a href="{{ route('admin.attendance.restore', $attendance->MABC) }}" 
+                                               class="btn btn-info btn-sm" 
+                                               title="Khôi phục"
+                                               onclick="return confirm('Bạn có chắc muốn khôi phục bản ghi này?')">
+                                                <i class="fas fa-trash-restore"></i>
+                                            </a>
+                                        @else
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-info btn-sm view-attendance" 
+                                                    data-toggle="modal" 
+                                                    data-target="#viewAttendanceModal" 
+                                                    data-id="{{ $attendance->MABC }}">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-primary btn-sm edit-attendance" 
+                                                    data-toggle="modal" 
+                                                    data-target="#editAttendanceModal" 
+                                                    data-id="{{ $attendance->MABC }}"
+                                                    data-employee="{{ $attendance->employee->TenNV ?? 'N/A' }}"
+                                                    data-date="{{ $attendance->formattedDate }}"
+                                                    data-checkin="{{ $attendance->checkInTime }}"
+                                                    data-checkout="{{ $attendance->checkOutTime }}"
+                                                    data-status="{{ $attendance->TrangThai }}"
+                                                    data-worktype="{{ $attendance->IDLC }}"
+                                                    data-note="{{ $attendance->GhiChu }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-danger btn-sm delete-attendance" 
+                                                    data-id="{{ $attendance->MABC }}"
+                                                    data-employee="{{ $attendance->employee->TenNV ?? 'N/A' }}"
+                                                    data-date="{{ $attendance->formattedDate }}"
+                                                    onclick="if(confirm('Bạn có chắc muốn xóa bản ghi chấm công này?')) { 
+                                                        event.preventDefault(); 
+                                                        document.getElementById('delete-form-{{ $attendance->MABC }}').submit(); 
+                                                    }">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                <form id="delete-form-{{ $attendance->MABC }}" 
+                                                    action="{{ route('admin.attendance.destroy', $attendance->MABC) }}" 
+                                                    method="POST" 
+                                                    style="display: none;">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                </form>
+                                            </div>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="10" class="text-center">Không có dữ liệu</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
                 
                 <!-- Pagination -->
                 <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div>Hiển thị 1 đến 5 của 152 bản ghi</div>
-                    <ul class="pagination pagination-sm m-0">
-                        <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item"><a class="page-link" href="#">...</a></li>
-                        <li class="page-item"><a class="page-link" href="#">31</a></li>
-                        <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
-                    </ul>
+                    <div>Hiển thị {{ $attendances->firstItem() ?? 0 }} đến {{ $attendances->lastItem() ?? 0 }} của {{ $attendances->total() }} bản ghi</div>
+                    {{ $attendances->appends(request()->query())->links() }}
                 </div>
             </div>
         </div>
@@ -374,71 +319,21 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>Kỹ thuật</td>
-                                <td>42</td>
-                                <td>40</td>
-                                <td>2</td>
-                                <td>2</td>
-                                <td>
-                                    <div class="progress progress-xs">
-                                        <div class="progress-bar bg-success" style="width: 95%"></div>
-                                    </div>
-                                    <span class="badge bg-success">95%</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Kinh doanh</td>
-                                <td>30</td>
-                                <td>28</td>
-                                <td>3</td>
-                                <td>2</td>
-                                <td>
-                                    <div class="progress progress-xs">
-                                        <div class="progress-bar bg-success" style="width: 93%"></div>
-                                    </div>
-                                    <span class="badge bg-success">93%</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Nhân sự</td>
-                                <td>12</td>
-                                <td>12</td>
-                                <td>1</td>
-                                <td>0</td>
-                                <td>
-                                    <div class="progress progress-xs">
-                                        <div class="progress-bar bg-success" style="width: 100%"></div>
-                                    </div>
-                                    <span class="badge bg-success">100%</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Marketing</td>
-                                <td>18</td>
-                                <td>17</td>
-                                <td>0</td>
-                                <td>1</td>
-                                <td>
-                                    <div class="progress progress-xs">
-                                        <div class="progress-bar bg-success" style="width: 94%"></div>
-                                    </div>
-                                    <span class="badge bg-success">94%</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Tài chính</td>
-                                <td>15</td>
-                                <td>13</td>
-                                <td>1</td>
-                                <td>2</td>
-                                <td>
-                                    <div class="progress progress-xs">
-                                        <div class="progress-bar bg-success" style="width: 87%"></div>
-                                    </div>
-                                    <span class="badge bg-success">87%</span>
-                                </td>
-                            </tr>
+                            @foreach($statistics['departmentStats'] as $depStat)
+                                <tr>
+                                    <td>{{ $depStat['name'] }}</td>
+                                    <td>{{ $depStat['totalEmployees'] }}</td>
+                                    <td>{{ $depStat['attendedCount'] }}</td>
+                                    <td>{{ $depStat['lateEarlyCount'] }}</td>
+                                    <td>{{ $depStat['absentCount'] }}</td>
+                                    <td>
+                                        <div class="progress progress-xs">
+                                            <div class="progress-bar bg-success" style="width: {{ $depStat['attendanceRate'] }}%"></div>
+                                        </div>
+                                        <span class="badge bg-success">{{ $depStat['attendanceRate'] }}%</span>
+                                    </td>
+                                </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
@@ -457,27 +352,26 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <form>
+            <form action="{{ route('admin.attendance.store') }}" method="POST">
+                @csrf
+                <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Nhân viên</label>
-                                <select class="form-control select2" style="width: 100%;">
+                                <label>Nhân viên <span class="text-danger">*</span></label>
+                                <select class="form-control select2" name="employee_id" style="width: 100%;" required>
                                     <option selected disabled>Chọn nhân viên</option>
-                                    <option>Nguyễn Văn A</option>
-                                    <option>Trần Thị B</option>
-                                    <option>Lê Văn C</option>
-                                    <option>Phạm Thị D</option>
-                                    <option>Hoàng Văn E</option>
+                                    @foreach($employees as $employee)
+                                        <option value="{{ $employee->MaNV }}">{{ $employee->MaNV }} - {{ $employee->TenNV }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Ngày</label>
+                                <label>Ngày <span class="text-danger">*</span></label>
                                 <div class="input-group date" id="attendanceDatePicker" data-target-input="nearest">
-                                    <input type="text" class="form-control datetimepicker-input" data-target="#attendanceDatePicker" value="03/04/2025"/>
+                                    <input type="text" class="form-control datetimepicker-input" name="date" data-target="#attendanceDatePicker" value="{{ $date->format('d/m/Y') }}" required/>
                                     <div class="input-group-append" data-target="#attendanceDatePicker" data-toggle="datetimepicker">
                                         <div class="input-group-text"><i class="fa fa-calendar"></i></div>
                                     </div>
@@ -491,7 +385,7 @@
                             <div class="form-group">
                                 <label>Giờ vào</label>
                                 <div class="input-group date" id="checkInTimePicker" data-target-input="nearest">
-                                    <input type="text" class="form-control datetimepicker-input" data-target="#checkInTimePicker"/>
+                                    <input type="text" class="form-control datetimepicker-input" name="check_in" data-target="#checkInTimePicker" value="08:00"/>
                                     <div class="input-group-append" data-target="#checkInTimePicker" data-toggle="datetimepicker">
                                         <div class="input-group-text"><i class="far fa-clock"></i></div>
                                     </div>
@@ -502,7 +396,7 @@
                             <div class="form-group">
                                 <label>Giờ ra</label>
                                 <div class="input-group date" id="checkOutTimePicker" data-target-input="nearest">
-                                    <input type="text" class="form-control datetimepicker-input" data-target="#checkOutTimePicker"/>
+                                    <input type="text" class="form-control datetimepicker-input" name="check_out" data-target="#checkOutTimePicker" value="17:00"/>
                                     <div class="input-group-append" data-target="#checkOutTimePicker" data-toggle="datetimepicker">
                                         <div class="input-group-text"><i class="far fa-clock"></i></div>
                                     </div>
@@ -511,29 +405,43 @@
                         </div>
                     </div>
                     
-                    <div class="form-group">
-                        <label>Trạng thái</label>
-                        <select class="form-control">
-                            <option value="1" selected>Đúng giờ</option>
-                            <option value="2">Đi muộn</option>
-                            <option value="3">Về sớm</option>
-                            <option value="4">Làm thêm giờ</option>
-                            <option value="5">Vắng mặt</option>
-                            <option value="6">Nghỉ phép</option>
-                            <option value="7">Công tác</option>
-                        </select>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Trạng thái <span class="text-danger">*</span></label>
+                                <select class="form-control" name="status" required>
+                                    <option value="{{ App\Models\Attendance::ATTENDANCE_ONTIME }}" selected>Đúng giờ</option>
+                                    <option value="{{ App\Models\Attendance::ATTENDANCE_LATE }}">Đi muộn</option>
+                                    <option value="{{ App\Models\Attendance::ATTENDANCE_EARLY_LEAVE }}">Về sớm</option>
+                                    <option value="{{ App\Models\Attendance::ATTENDANCE_OVERTIME }}">Làm thêm giờ</option>
+                                    <option value="{{ App\Models\Attendance::ATTENDANCE_ABSENT }}">Vắng mặt</option>
+                                    <option value="{{ App\Models\Attendance::ATTENDANCE_LEAVE }}">Nghỉ phép</option>
+                                    <option value="{{ App\Models\Attendance::ATTENDANCE_BUSINESS }}">Công tác</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Loại công <span class="text-danger">*</span></label>
+                                <select class="form-control" name="work_type_id" required>
+                                    @foreach($workTypes as $workType)
+                                        <option value="{{ $workType->IDLC }}">{{ $workType->TenLC }} ({{ $workType->HeSo }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="form-group">
                         <label>Ghi chú</label>
-                        <textarea class="form-control" rows="3" placeholder="Nhập ghi chú nếu có..."></textarea>
+                        <textarea class="form-control" name="note" rows="3" placeholder="Nhập ghi chú nếu có..."></textarea>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer justify-content-between">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary">Lưu lại</button>
-            </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Lưu lại</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -550,40 +458,40 @@
             </div>
             <div class="modal-body">
                 <div class="text-center mb-3">
-                    <img src="https://adminlte.io/themes/v3/dist/img/user1-128x128.jpg" alt="Avatar" class="img-circle" width="100">
-                    <h4 class="mt-2">Nguyễn Văn A</h4>
-                    <p class="text-muted">Kỹ thuật - Trưởng phòng</p>
+                    <img src="" alt="Avatar" id="employeeAvatar" class="img-circle" width="100">
+                    <h4 class="mt-2" id="employeeName"></h4>
+                    <p class="text-muted" id="employeePosition"></p>
                 </div>
                 
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <tr>
                             <th style="width: 40%">Ngày:</th>
-                            <td>03/04/2025</td>
+                            <td id="viewDate"></td>
                         </tr>
                         <tr>
                             <th>Check-in:</th>
-                            <td>07:55 <small class="text-success">(đúng giờ)</small></td>
+                            <td id="viewCheckIn"></td>
                         </tr>
                         <tr>
                             <th>Check-out:</th>
-                            <td>17:05 <small class="text-success">(đúng giờ)</small></td>
+                            <td id="viewCheckOut"></td>
                         </tr>
                         <tr>
                             <th>Tổng thời gian:</th>
-                            <td>8 giờ 10 phút</td>
+                            <td id="viewTotalTime"></td>
                         </tr>
                         <tr>
                             <th>Trạng thái:</th>
-                            <td><span class="badge bg-success">Đúng giờ</span></td>
+                            <td id="viewStatus"></td>
+                        </tr>
+                        <tr>
+                            <th>Loại công:</th>
+                            <td id="viewWorkType"></td>
                         </tr>
                         <tr>
                             <th>Ghi chú:</th>
-                            <td>Không có</td>
-                        </tr>
-                        <tr>
-                            <th>Cập nhật lần cuối:</th>
-                            <td>03/04/2025 17:05:23</td>
+                            <td id="viewNote"></td>
                         </tr>
                     </table>
                 </div>
@@ -605,20 +513,22 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <form>
+            <form id="editAttendanceForm" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
                     <div class="form-group">
                         <label>Nhân viên</label>
-                        <input type="text" class="form-control" value="Nguyễn Văn A" readonly>
+                        <input type="text" class="form-control" id="editEmployeeName" readonly>
                     </div>
                     <div class="form-group">
                         <label>Ngày</label>
-                        <input type="text" class="form-control" value="03/04/2025" readonly>
+                        <input type="text" class="form-control" id="editDate" readonly>
                     </div>
                     <div class="form-group">
                         <label>Giờ vào</label>
                         <div class="input-group date" id="editCheckInTimePicker" data-target-input="nearest">
-                            <input type="text" class="form-control datetimepicker-input" data-target="#editCheckInTimePicker" value="07:55"/>
+                            <input type="text" class="form-control datetimepicker-input" name="check_in" id="editCheckIn" data-target="#editCheckInTimePicker"/>
                             <div class="input-group-append" data-target="#editCheckInTimePicker" data-toggle="datetimepicker">
                                 <div class="input-group-text"><i class="far fa-clock"></i></div>
                             </div>
@@ -627,7 +537,7 @@
                     <div class="form-group">
                         <label>Giờ ra</label>
                         <div class="input-group date" id="editCheckOutTimePicker" data-target-input="nearest">
-                            <input type="text" class="form-control datetimepicker-input" data-target="#editCheckOutTimePicker" value="17:05"/>
+                            <input type="text" class="form-control datetimepicker-input" name="check_out" id="editCheckOut" data-target="#editCheckOutTimePicker"/>
                             <div class="input-group-append" data-target="#editCheckOutTimePicker" data-toggle="datetimepicker">
                                 <div class="input-group-text"><i class="far fa-clock"></i></div>
                             </div>
@@ -635,26 +545,87 @@
                     </div>
                     <div class="form-group">
                         <label>Trạng thái</label>
-                        <select class="form-control">
-                            <option value="1" selected>Đúng giờ</option>
-                            <option value="2">Đi muộn</option>
-                            <option value="3">Về sớm</option>
-                            <option value="4">Làm thêm giờ</option>
-                            <option value="5">Vắng mặt</option>
-                            <option value="6">Nghỉ phép</option>
-                            <option value="7">Công tác</option>
+                        <select class="form-control" name="status" id="editStatus">
+                            <option value="{{ App\Models\Attendance::ATTENDANCE_ONTIME }}">Đúng giờ</option>
+                            <option value="{{ App\Models\Attendance::ATTENDANCE_LATE }}">Đi muộn</option>
+                            <option value="{{ App\Models\Attendance::ATTENDANCE_EARLY_LEAVE }}">Về sớm</option>
+                            <option value="{{ App\Models\Attendance::ATTENDANCE_OVERTIME }}">Làm thêm giờ</option>
+                            <option value="{{ App\Models\Attendance::ATTENDANCE_ABSENT }}">Vắng mặt</option>
+                            <option value="{{ App\Models\Attendance::ATTENDANCE_LEAVE }}">Nghỉ phép</option>
+                            <option value="{{ App\Models\Attendance::ATTENDANCE_BUSINESS }}">Công tác</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Loại công</label>
+                        <select class="form-control" name="work_type_id" id="editWorkType">
+                            @foreach($workTypes as $workType)
+                                <option value="{{ $workType->IDLC }}">{{ $workType->TenLC }} ({{ $workType->HeSo }})</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Ghi chú</label>
-                        <textarea class="form-control" rows="3" placeholder="Nhập ghi chú nếu có..."></textarea>
+                        <textarea class="form-control" name="note" id="editNote" rows="3" placeholder="Nhập ghi chú nếu có..."></textarea>
                     </div>
-                </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal tạo tự động -->
+<div class="modal fade" id="generateModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Tạo chấm công tự động</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
-            <div class="modal-footer justify-content-between">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary">Lưu thay đổi</button>
-            </div>
+            <form action="{{ route('admin.attendance.generate') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Ngày <span class="text-danger">*</span></label>
+                        <div class="input-group date" id="generateDatePicker" data-target-input="nearest">
+                            <input type="text" class="form-control datetimepicker-input" name="date" data-target="#generateDatePicker" value="{{ $date->format('d/m/Y') }}" required/>
+                            <div class="input-group-append" data-target="#generateDatePicker" data-toggle="datetimepicker">
+                                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Phòng ban</label>
+                        <select class="form-control" name="department_id">
+                            <option value="">Tất cả phòng ban</option>
+                            @foreach($departments as $department)
+                                <option value="{{ $department->IDPB }}">{{ $department->TenPB }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Trạng thái mặc định <span class="text-danger">*</span></label>
+                        <select class="form-control" name="status" required>
+                            <option value="{{ App\Models\Attendance::ATTENDANCE_ONTIME }}">Đúng giờ</option>
+                            <option value="{{ App\Models\Attendance::ATTENDANCE_ABSENT }}">Vắng mặt</option>
+                            <option value="{{ App\Models\Attendance::ATTENDANCE_LEAVE }}">Nghỉ phép</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ghi chú</label>
+                        <textarea class="form-control" name="note" rows="3" placeholder="Nhập ghi chú nếu có..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Tạo chấm công</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -663,8 +634,25 @@
 @push('scripts')
 <script>
     $(function () {
+        // Debug logs
+        console.log('Attendance script loaded');
+        console.log('Show deleted: ' + $('#showDeletedRecords').is(':checked'));
+        
+        // Hiển thị thông báo nếu có
+        @if(session('success'))
+            toastr.success("{{ session('success') }}");
+        @endif
+        
+        @if(session('error'))
+            toastr.error("{{ session('error') }}");
+        @endif
+        
+        @if(session('info'))
+            toastr.info("{{ session('info') }}");
+        @endif
+
         // Date picker
-        $('#attendanceDate, #attendanceDatePicker').daterangepicker({
+        $('#attendanceDate, #attendanceDatePicker, #generateDatePicker').daterangepicker({
             singleDatePicker: true,
             locale: {
                 format: 'DD/MM/YYYY'
@@ -676,7 +664,14 @@
             format: 'HH:mm',
             stepping: 5,
             icons: {
-                time: 'far fa-clock'
+                time: 'far fa-clock',
+                up: 'fas fa-chevron-up',
+                down: 'fas fa-chevron-down',
+                previous: 'fas fa-chevron-left',
+                next: 'fas fa-chevron-right',
+                today: 'fas fa-calendar-check',
+                clear: 'far fa-trash-alt',
+                close: 'far fa-times-circle'
             }
         });
         
@@ -685,49 +680,150 @@
             theme: 'bootstrap4'
         });
         
-        // Attendance trend chart
-        var ctx = document.getElementById('attendanceChart').getContext('2d');
-        var chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['04/03', '05/03', '06/03', '07/03', '08/03', '09/03', '10/03', '11/03', '12/03', '13/03', '14/03', '15/03', '16/03', '17/03', '18/03', '19/03', '20/03', '21/03', '22/03', '23/03', '24/03', '25/03', '26/03', '27/03', '28/03', '29/03', '30/03', '31/03', '01/04', '02/04', '03/04'],
-                datasets: [
-                    {
-                        label: 'Tỷ lệ đi làm',
-                        backgroundColor: 'rgba(60,141,188,0.2)',
-                        borderColor: '#3c8dbc',
-                        pointRadius: 3,
-                        pointColor: '#3c8dbc',
-                        pointStrokeColor: 'rgba(60,141,188,1)',
-                        pointHighlightFill: '#fff',
-                        pointHighlightStroke: 'rgba(60,141,188,1)',
-                        data: [93, 94, 95, 95, 96, 65, 60, 94, 93, 92, 95, 70, 68, 95, 94, 94, 93, 95, 62, 67, 93, 92, 95, 94, 94, 65, 60, 95, 96, 94, 95]
-                    },
-                    {
-                        label: 'Đi muộn/Về sớm',
-                        backgroundColor: 'rgba(210, 214, 222, 0.2)',
-                        borderColor: '#f39c12',
-                        pointRadius: 3,
-                        pointColor: '#f39c12',
-                        pointStrokeColor: '#f39c12',
-                        pointHighlightFill: '#fff',
-                        pointHighlightStroke: '#f39c12',
-                        data: [5, 4, 3, 3, 3, 4, 5, 4, 5, 6, 4, 5, 5, 3, 4, 4, 4, 3, 3, 4, 5, 6, 3, 4, 5, 3, 3, 3, 2, 5, 5]
-                    }
-                ]
-            },
-            options: {
-                maintainAspectRatio: false,
-                responsive: true,
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true,
-                            max: 100
-                        }
-                    }]
+        // Xem chi tiết chấm công
+        $('.view-attendance').on('click', function() {
+            var id = $(this).data('id');
+            console.log('Viewing attendance ID: ' + id);
+            
+            // Gọi Ajax để lấy thông tin chi tiết
+            $.ajax({
+                url: '{{ url("admin/attendance") }}/' + id,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    console.log('Attendance data loaded', response);
+                    
+                    // Hiển thị thông tin trong modal
+                    $('#employeeName').text(response.employee ? response.employee.TenNV : 'N/A');
+                    $('#employeePosition').text(
+                        (response.department ? response.department.TenPB : 'N/A') + 
+                        ' - ' + 
+                        (response.position ? response.position.TenCV : 'N/A')
+                    );
+                    $('#employeeAvatar').attr('src', response.employee && response.employee.AnhDaiDien 
+                        ? '{{ asset("storage") }}/' + response.employee.AnhDaiDien 
+                        : '{{ asset("img/default-avatar.jpg") }}'
+                    );
+                    $('#viewDate').text(response.formattedDate || 'N/A');
+                    $('#viewCheckIn').text(response.checkInTime || 'N/A');
+                    $('#viewCheckOut').text(response.checkOutTime || 'N/A');
+                    $('#viewTotalTime').text(response.totalWorkTime || 'N/A');
+                    $('#viewStatus').html('<span class="badge ' + response.statusClass + '">' + response.statusText + '</span>');
+                    $('#viewWorkType').text(response.workType ? response.workType.TenLC : 'N/A');
+                    $('#viewNote').text(response.GhiChu || 'Không có');
+                },
+                error: function(xhr) {
+                    console.error('Error loading attendance data', xhr);
+                    toastr.error('Có lỗi xảy ra khi tải thông tin! Vui lòng thử lại.');
                 }
+            });
+        });
+        
+        // Sửa chấm công
+        $('.edit-attendance').on('click', function() {
+            var id = $(this).data('id');
+            var employee = $(this).data('employee');
+            var date = $(this).data('date');
+            var checkin = $(this).data('checkin');
+            var checkout = $(this).data('checkout');
+            var status = $(this).data('status');
+            var worktype = $(this).data('worktype');
+            var note = $(this).data('note') || '';
+            
+            console.log('Editing attendance ID: ' + id);
+            console.log('Note: ' + note);
+            
+            // Cập nhật form
+            $('#editAttendanceForm').attr('action', '{{ url("admin/attendance") }}/' + id);
+            $('#editEmployeeName').val(employee);
+            $('#editDate').val(date);
+            $('#editCheckIn').val(checkin === '--' ? '' : checkin);
+            $('#editCheckOut').val(checkout === '--' ? '' : checkout);
+            $('#editStatus').val(status);
+            $('#editWorkType').val(worktype);
+            $('#editNote').val(note);
+        });
+        
+        // Attendance trend chart
+        if (document.getElementById('attendanceChart')) {
+            try {
+                // Kiểm tra dữ liệu biểu đồ và log chi tiết
+                console.log('Checking statistics data:', {!! json_encode($statistics ?? []) !!});
+                
+                var trendData = @json($statistics['trendData'] ?? []);
+                console.log('Trend data loaded:', trendData);
+                
+                if (trendData && trendData.length > 0) {
+                    var ctx = document.getElementById('attendanceChart').getContext('2d');
+                    var labels = trendData.map(function(item) { return item.date; });
+                    var rates = trendData.map(function(item) { return item.rate; });
+                    var lateCounts = trendData.map(function(item) { return item.lateEarlyCount; });
+                    
+                    console.log('Chart data prepared:', {
+                        labels: labels,
+                        rates: rates,
+                        lateCounts: lateCounts
+                    });
+                    
+                    // Sử dụng Chart.js v2.9.4 với cấu trúc cũ
+                    var chartConfig = {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Tỷ lệ đi làm',
+                                    backgroundColor: 'rgba(60,141,188,0.2)',
+                                    borderColor: '#3c8dbc',
+                                    pointRadius: 3,
+                                    pointColor: '#3c8dbc',
+                                    pointStrokeColor: 'rgba(60,141,188,1)',
+                                    pointHighlightFill: '#fff',
+                                    pointHighlightStroke: 'rgba(60,141,188,1)',
+                                    data: rates
+                                },
+                                {
+                                    label: 'Đi muộn/Về sớm',
+                                    backgroundColor: 'rgba(210, 214, 222, 0.2)',
+                                    borderColor: '#f39c12',
+                                    pointRadius: 3,
+                                    pointColor: '#f39c12',
+                                    pointStrokeColor: '#f39c12',
+                                    pointHighlightFill: '#fff',
+                                    pointHighlightStroke: '#f39c12',
+                                    data: lateCounts
+                                }
+                            ]
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            responsive: true,
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true,
+                                        max: 100
+                                    }
+                                }]
+                            }
+                        }
+                    };
+                    
+                    console.log('Creating chart with config:', chartConfig);
+                    var chart = new Chart(ctx, chartConfig);
+                    console.log('Chart created successfully');
+                } else {
+                    console.log('Không có dữ liệu xu hướng để hiển thị biểu đồ');
+                }
+            } catch (e) {
+                console.error('Lỗi khi vẽ biểu đồ:', e);
             }
+        }
+        
+        // Debug checkbox for deleted records
+        $('#showDeletedRecords').on('change', function() {
+            console.log('Show deleted changed to: ' + $(this).is(':checked'));
+            $('#filterForm').submit();
         });
     });
 </script>
