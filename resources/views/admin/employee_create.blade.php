@@ -101,12 +101,14 @@
                             
                             <div class="form-group">
                                 <label for="IDCV">Chức vụ <span class="text-danger">*</span></label>
-                                <select class="form-control @error('IDCV') is-invalid @enderror" id="IDCV" name="IDCV">
+                                <select class="form-control @error('IDCV') is-invalid @enderror" id="IDCV" name="IDCV" required>
                                     <option value="">-- Chọn chức vụ --</option>
                                     @foreach($positions as $position)
-                                        <option value="{{ $position->IDCV }}" {{ old('IDCV') == $position->IDCV ? 'selected' : '' }}>
-                                            {{ $position->TenCV }}
-                                        </option>
+                                        @if($position->TrangThai == \App\Models\Position::STATUS_ACTIVE)
+                                            <option value="{{ $position->IDCV }}" {{ old('IDCV', $employee->IDCV ?? '') == $position->IDCV ? 'selected' : '' }}>
+                                                {{ $position->TenCV }}
+                                            </option>
+                                        @endif
                                     @endforeach
                                 </select>
                                 @error('IDCV')

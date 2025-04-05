@@ -54,7 +54,7 @@ class EmployeeController extends Controller
      */
     public function create()
     {
-        $positions = Position::all();
+        $positions = Position::where('TrangThai', Position::STATUS_ACTIVE)->get();
         return view('admin.employee_create', compact('positions'));
     }
 

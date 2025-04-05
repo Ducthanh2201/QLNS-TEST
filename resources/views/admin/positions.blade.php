@@ -14,54 +14,52 @@
         <!-- Thêm/Sửa chức vụ -->
         <div class="card card-primary">
             <div class="card-header">
-                <h3 class="card-title">Thêm chức vụ mới</h3>
+                <h3 class="card-title" id="form-title">Thêm chức vụ mới</h3>
             </div>
             <!-- /.card-header -->
             <!-- form start -->
-            <form>
+            <form action="{{ route('admin.positions.store') }}" method="POST" id="position-form">
+                @csrf
+                <div id="method-field"></div>
                 <div class="card-body">
-                    <div class="form-group">
-                        <label for="positionName">Tên chức vụ</label>
-                        <input type="text" class="form-control" id="positionName" placeholder="Nhập tên chức vụ">
-                    </div>
-                    <div class="form-group">
-                        <label for="positionCode">Mã chức vụ</label>
-                        <input type="text" class="form-control" id="positionCode" placeholder="Nhập mã chức vụ">
-                    </div>
-                    <div class="form-group">
-                        <label for="departmentSelect">Phòng ban áp dụng</label>
-                        <select class="form-control" id="departmentSelect">
-                            <option value="0">Tất cả phòng ban</option>
-                            <option value="1">Kỹ thuật</option>
-                            <option value="2">Kinh doanh</option>
-                            <option value="3">Nhân sự</option>
-                            <option value="4">Marketing</option>
-                            <option value="5">Tài chính</option>
-                            <option value="6">Hành chính</option>
-                            <option value="7">IT</option>
-                            <option value="8">Pháp lý</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="positionDescription">Mô tả chức vụ</label>
-                        <textarea class="form-control" id="positionDescription" rows="3" placeholder="Nhập mô tả chức vụ"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="positionLevel">Cấp bậc</label>
-                        <input type="number" class="form-control" id="positionLevel" placeholder="Nhập cấp bậc" min="1" max="10">
-                    </div>
-                    <div class="form-group">
-                        <div class="custom-control custom-switch">
-                            <input type="checkbox" class="custom-control-input" id="positionActive" checked>
-                            <label class="custom-control-label" for="positionActive">Kích hoạt</label>
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
                         </div>
+                    @endif
+                    
+                    <div class="form-group">
+                        <label for="TenCV">Tên chức vụ <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control @error('TenCV') is-invalid @enderror" id="TenCV" name="TenCV" placeholder="Nhập tên chức vụ" value="{{ old('TenCV') }}" required>
+                        @error('TenCV')
+                            <span class="invalid-feedback">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Trạng thái</label>
+                        <div class="custom-control custom-radio">
+                            <input class="custom-control-input" type="radio" id="status-active" name="TrangThai" value="1" {{ old('TrangThai', 1) == 1 ? 'checked' : '' }}>
+                            <label for="status-active" class="custom-control-label">Kích hoạt</label>
+                        </div>
+                        <div class="custom-control custom-radio">
+                            <input class="custom-control-input" type="radio" id="status-inactive" name="TrangThai" value="0" {{ old('TrangThai') == 0 ? 'checked' : '' }}>
+                            <label for="status-inactive" class="custom-control-label">Không kích hoạt</label>
+                        </div>
+                        @error('TrangThai')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
                     </div>
                 </div>
                 <!-- /.card-body -->
 
                 <div class="card-footer">
                     <button type="submit" class="btn btn-primary">Lưu lại</button>
-                    <button type="reset" class="btn btn-default float-right">Hủy bỏ</button>
+                    <button type="button" class="btn btn-default float-right" id="btn-reset">Hủy bỏ</button>
                 </div>
             </form>
         </div>
@@ -73,14 +71,16 @@
             <div class="card-header">
                 <h3 class="card-title">Danh sách chức vụ</h3>
                 <div class="card-tools">
-                    <div class="input-group input-group-sm" style="width: 150px;">
-                        <input type="text" name="table_search" class="form-control float-right" placeholder="Tìm kiếm...">
-                        <div class="input-group-append">
-                            <button type="submit" class="btn btn-default">
-                                <i class="fas fa-search"></i>
-                            </button>
+                    <form action="{{ route('admin.positions.index') }}" method="GET">
+                        <div class="input-group input-group-sm" style="width: 150px;">
+                            <input type="text" name="search" class="form-control float-right" placeholder="Tìm kiếm..." value="{{ $search ?? '' }}">
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-default">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
             <!-- /.card-header -->
@@ -90,178 +90,58 @@
                         <tr>
                             <th style="width: 10px">#</th>
                             <th>Tên chức vụ</th>
-                            <th>Mã</th>
-                            <th>Phòng ban</th>
-                            <th>Cấp bậc</th>
                             <th>Số nhân viên</th>
                             <th style="width: 100px">Trạng thái</th>
                             <th style="width: 120px">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>1.</td>
-                            <td>Giám đốc</td>
-                            <td><span class="badge bg-primary">GD</span></td>
-                            <td>Tất cả</td>
-                            <td>10</td>
-                            <td>1</td>
-                            <td><span class="badge bg-success">Kích hoạt</span></td>
-                            <td>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-primary edit-position" data-id="1">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-danger delete-position" data-id="1">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>2.</td>
-                            <td>Phó giám đốc</td>
-                            <td><span class="badge bg-primary">PGD</span></td>
-                            <td>Tất cả</td>
-                            <td>9</td>
-                            <td>2</td>
-                            <td><span class="badge bg-success">Kích hoạt</span></td>
-                            <td>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-primary edit-position" data-id="2">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-danger delete-position" data-id="2">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>3.</td>
-                            <td>Trưởng phòng</td>
-                            <td><span class="badge bg-primary">TP</span></td>
-                            <td>Tất cả</td>
-                            <td>8</td>
-                            <td>8</td>
-                            <td><span class="badge bg-success">Kích hoạt</span></td>
-                            <td>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-primary edit-position" data-id="3">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-danger delete-position" data-id="3">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>4.</td>
-                            <td>Phó phòng</td>
-                            <td><span class="badge bg-primary">PP</span></td>
-                            <td>Tất cả</td>
-                            <td>7</td>
-                            <td>10</td>
-                            <td><span class="badge bg-success">Kích hoạt</span></td>
-                            <td>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-primary edit-position" data-id="4">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-danger delete-position" data-id="4">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>5.</td>
-                            <td>Trưởng nhóm</td>
-                            <td><span class="badge bg-primary">TN</span></td>
-                            <td>Tất cả</td>
-                            <td>6</td>
-                            <td>15</td>
-                            <td><span class="badge bg-success">Kích hoạt</span></td>
-                            <td>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-primary edit-position" data-id="5">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-danger delete-position" data-id="5">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>6.</td>
-                            <td>Nhân viên</td>
-                            <td><span class="badge bg-primary">NV</span></td>
-                            <td>Tất cả</td>
-                            <td>5</td>
-                            <td>116</td>
-                            <td><span class="badge bg-success">Kích hoạt</span></td>
-                            <td>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-primary edit-position" data-id="6">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-danger delete-position" data-id="6">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>7.</td>
-                            <td>Thực tập sinh</td>
-                            <td><span class="badge bg-primary">TTS</span></td>
-                            <td>Tất cả</td>
-                            <td>1</td>
-                            <td>8</td>
-                            <td><span class="badge bg-success">Kích hoạt</span></td>
-                            <td>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-primary edit-position" data-id="7">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-danger delete-position" data-id="7">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>8.</td>
-                            <td>Cố vấn</td>
-                            <td><span class="badge bg-primary">CV</span></td>
-                            <td>Ban giám đốc</td>
-                            <td>9</td>
-                            <td>2</td>
-                            <td><span class="badge bg-secondary">Không kích hoạt</span></td>
-                            <td>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-primary edit-position" data-id="8">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-danger delete-position" data-id="8">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                        @forelse ($positions as $position)
+                            <tr>
+                                <td>{{ $position->IDCV }}</td>
+                                <td>{{ $position->TenCV }}</td>
+                                <td>{{ $position->employee_count }}</td>
+                                <td>
+                                    @if ($position->TrangThai == \App\Models\Position::STATUS_ACTIVE)
+                                        <span class="badge bg-success">Kích hoạt</span>
+                                    @else
+                                        <span class="badge bg-secondary">Không kích hoạt</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-primary edit-position" 
+                                            data-id="{{ $position->IDCV }}" 
+                                            data-name="{{ $position->TenCV }}" 
+                                            data-status="{{ $position->TrangThai }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <form action="{{ route('admin.positions.toggle-status', $position->IDCV) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-info" title="{{ $position->TrangThai ? 'Vô hiệu hóa' : 'Kích hoạt' }}">
+                                                <i class="fas fa-{{ $position->TrangThai ? 'ban' : 'check' }}"></i>
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-sm btn-danger delete-position" 
+                                            data-id="{{ $position->IDCV }}" 
+                                            data-name="{{ $position->TenCV }}"
+                                            data-employee-count="{{ $position->employee_count }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-center">Không có dữ liệu</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
             <!-- /.card-body -->
             <div class="card-footer clearfix">
-                <ul class="pagination pagination-sm m-0 float-right">
-                    <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
-                </ul>
+                {{ $positions->links('pagination::bootstrap-4') }}
             </div>
         </div>
         <!-- /.card -->
@@ -302,12 +182,19 @@
                 </button>
             </div>
             <div class="modal-body">
-                <p>Bạn có chắc chắn muốn xóa chức vụ này?</p>
-                <p class="text-danger"><strong>Lưu ý:</strong> Hành động này có thể ảnh hưởng đến dữ liệu nhân viên hiện tại.</p>
+                <p>Bạn có chắc chắn muốn xóa chức vụ <strong id="delete-position-name"></strong>?</p>
+                <p class="text-danger"><strong>Lưu ý:</strong> Chức vụ chỉ có thể bị xóa khi không có nhân viên nào đang sử dụng.</p>
+                <div id="employee-warning" class="alert alert-warning">
+                    Chức vụ này đang được sử dụng bởi <strong id="employee-count"></strong> nhân viên. Không thể xóa!
+                </div>
             </div>
             <div class="modal-footer justify-content-between">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Hủy bỏ</button>
-                <button type="button" class="btn btn-danger confirm-delete">Xác nhận xóa</button>
+                <form id="delete-form" action="" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger" id="confirm-delete">Xác nhận xóa</button>
+                </form>
             </div>
         </div>
         <!-- /.modal-content -->
@@ -319,57 +206,108 @@
 
 @push('scripts')
 <script>
-    $(function () {
-        // Chart initialization
-        var ctx = document.getElementById('positionChart').getContext('2d');
-        var positionChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: ['Giám đốc', 'Phó giám đốc', 'Trưởng phòng', 'Phó phòng', 'Trưởng nhóm', 'Nhân viên', 'Thực tập sinh', 'Cố vấn'],
-                datasets: [
-                    {
-                        data: [1, 2, 8, 10, 15, 116, 8, 2],
-                        backgroundColor: ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de', '#6f42c1', '#fd7e14'],
-                    }
-                ]
-            },
-            options: {
-                maintainAspectRatio: false,
-                responsive: true,
-            }
-        });
+$(function () {
+    // Hiển thị thông báo qua session flash
+    @if(session('success'))
+        toastr.success("{{ session('success') }}");
+    @endif
 
-        // Edit position event
-        $('.edit-position').on('click', function() {
-            var id = $(this).data('id');
-            // Fill form with position data (in a real app, this would fetch data via AJAX)
-            $('#positionName').val($(this).closest('tr').find('td:nth-child(2)').text());
-            $('#positionCode').val($(this).closest('tr').find('td:nth-child(3)').text().trim());
-            // Update form title to indicate editing
-            $('.card-title:first').text('Chỉnh sửa chức vụ');
-        });
+    @if(session('error'))
+        toastr.error("{{ session('error') }}");
+    @endif
 
-        // Delete position event
-        $('.delete-position').on('click', function() {
-            var id = $(this).data('id');
-            $('#deletePositionModal').modal('show');
-            // Store ID for the confirm delete button
-            $('.confirm-delete').data('id', id);
-        });
-
-        // Confirm delete event
-        $('.confirm-delete').on('click', function() {
-            var id = $(this).data('id');
-            // In a real app, this would send an AJAX request to delete the position
-            // For now, just close the modal and show success message
-            $('#deletePositionModal').modal('hide');
-            // Show success message with SweetAlert or Toast
-            $(document).Toasts('create', {
-                class: 'bg-success',
-                title: 'Xóa thành công',
-                body: 'Đã xóa chức vụ thành công!'
+    // Kiểm tra nếu có phần tử biểu đồ tồn tại
+    var chartElement = document.getElementById('positionChart');
+    if (chartElement) {
+        try {
+            // Chuẩn bị dữ liệu cho biểu đồ
+            var labels = [];
+            var dataValues = [];
+            
+            @if(isset($chart_data) && count($chart_data) > 0)
+            // Lấy dữ liệu từ PHP và chuyển sang JavaScript
+            @foreach($chart_data as $item)
+            labels.push("{{ $item->TenCV }}");
+            dataValues.push({{ $item->employee_count }});
+            @endforeach
+            @endif
+            
+            // Chart initialization
+            var ctx = chartElement.getContext('2d');
+            var positionChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataValues,
+                        backgroundColor: ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de', '#6f42c1', '#fd7e14', '#17a2b8', '#6610f2'],
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                }
             });
-        });
+        } catch (e) {
+            console.error("Lỗi khởi tạo biểu đồ:", e);
+        }
+    }
+
+    // Edit position event
+    $('.edit-position').on('click', function() {
+        var id = $(this).data('id');
+        var name = $(this).data('name');
+        var status = $(this).data('status');
+        
+        // Chuyển đổi form sang chế độ cập nhật
+        $('#form-title').text('Cập nhật chức vụ');
+        $('#position-form').attr('action', '{{ route("admin.positions.index") }}/' + id);
+        $('#method-field').html('<input type="hidden" name="_method" value="PUT">');
+        
+        // Điền dữ liệu vào form
+        $('#TenCV').val(name);
+        if (status == 1) {
+            $('#status-active').prop('checked', true);
+        } else {
+            $('#status-inactive').prop('checked', true);
+        }
+        
+        // Scroll to form
+        $('html, body').animate({
+            scrollTop: $('#position-form').offset().top - 100
+        }, 500);
     });
+
+    // Reset form button
+    $('#btn-reset').on('click', function() {
+        // Reset form
+        $('#position-form').attr('action', '{{ route("admin.positions.store") }}');
+        $('#method-field').html('');
+        $('#form-title').text('Thêm chức vụ mới');
+        $('#position-form')[0].reset();
+    });
+
+    // Delete position event
+    $('.delete-position').on('click', function() {
+        var id = $(this).data('id');
+        var name = $(this).data('name');
+        var employeeCount = $(this).data('employee-count');
+        
+        $('#delete-position-name').text(name);
+        $('#delete-form').attr('action', '{{ route("admin.positions.index") }}/' + id);
+        
+        // Kiểm tra số lượng nhân viên
+        if (employeeCount > 0) {
+            $('#employee-count').text(employeeCount);
+            $('#employee-warning').show();
+            $('#confirm-delete').prop('disabled', true);
+        } else {
+            $('#employee-warning').hide();
+            $('#confirm-delete').prop('disabled', false);
+        }
+        
+        $('#deletePositionModal').modal('show');
+    });
+});
 </script>
 @endpush

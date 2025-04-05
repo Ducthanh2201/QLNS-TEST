@@ -66,15 +66,36 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::post('/employees/{employee}/toggle-status', [App\Http\Controllers\Admin\EmployeeController::class, 'toggleStatus'])
         ->name('employees.toggle-status');
     
-    // Positions
-    Route::get('/positions', function () {
-        return view('admin.positions');
-    })->name('positions.index');
+    // Positions - Sử dụng resource controller
+    Route::resource('positions', \App\Http\Controllers\Admin\PositionController::class);
+    
+    // Toggle Position Status
+    Route::post('/positions/{position}/toggle-status', [App\Http\Controllers\Admin\PositionController::class, 'toggleStatus'])
+        ->name('positions.toggle-status');
     
     // Work Time
-    Route::get('/worktime', function () {
-        return view('admin.worktime');
-    })->name('worktime.index');
+    Route::get('/worktime', [App\Http\Controllers\Admin\WorkTimeController::class, 'index'])
+        ->name('worktime.index');
+    Route::post('/worktime/config', [App\Http\Controllers\Admin\WorkTimeController::class, 'saveConfig'])
+        ->name('worktime.config');
+    Route::get('/worktime/create', [App\Http\Controllers\Admin\WorkTimeController::class, 'create'])
+        ->name('worktime.create');
+    Route::post('/worktime', [App\Http\Controllers\Admin\WorkTimeController::class, 'store'])
+        ->name('worktime.store');
+    Route::get('/worktime/{timeKeeping}/edit', [App\Http\Controllers\Admin\WorkTimeController::class, 'edit'])
+        ->name('worktime.edit');
+    Route::put('/worktime/{timeKeeping}', [App\Http\Controllers\Admin\WorkTimeController::class, 'update'])
+        ->name('worktime.update');
+    Route::post('/worktime/{timeKeeping}/delete', [App\Http\Controllers\Admin\WorkTimeController::class, 'destroy'])
+        ->name('worktime.destroy');
+    Route::post('/worktime/generate', [App\Http\Controllers\Admin\WorkTimeController::class, 'generate'])
+        ->name('worktime.generate');
+    Route::get('/worktime/export', [App\Http\Controllers\Admin\WorkTimeController::class, 'export'])
+        ->name('worktime.export');
+    Route::post('/worktime/update-status', [App\Http\Controllers\Admin\WorkTimeController::class, 'updateStatus'])
+        ->name('worktime.update-status');
+    Route::get('/worktime/fix-all', [App\Http\Controllers\Admin\WorkTimeController::class, 'fixAllStatuses'])
+        ->name('worktime.fix-all');
     
     // Attendance
     Route::get('/attendance', function () {
@@ -95,6 +116,19 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::get('/statistics', function () {
         return view('admin.statistics');
     })->name('statistics.index');
+
+    // Routes quản lý chấm công
+    Route::prefix('attendance')->name('attendance.')->group(function() {
+        Route::get('/', [App\Http\Controllers\Admin\AttendanceController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\AttendanceController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Admin\AttendanceController::class, 'store'])->name('store');
+        Route::get('/{id}', [App\Http\Controllers\Admin\AttendanceController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [App\Http\Controllers\Admin\AttendanceController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [App\Http\Controllers\Admin\AttendanceController::class, 'update'])->name('update');
+        Route::post('/{id}/soft-delete', [App\Http\Controllers\Admin\AttendanceController::class, 'softDelete'])->name('soft-delete');
+        Route::post('/{id}/restore', [App\Http\Controllers\Admin\AttendanceController::class, 'restore'])->name('restore');
+        Route::post('/generate-for-all', [App\Http\Controllers\Admin\AttendanceController::class, 'generateForAll'])->name('generate-for-all');
+    });
 });
 
 // Employee Routes

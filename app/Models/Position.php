@@ -13,8 +13,13 @@ class Position extends Model
     protected $primaryKey = 'IDCV';
     public $timestamps = false;
 
+    // Định nghĩa các trạng thái
+    const STATUS_ACTIVE = 1;    // Đang hoạt động
+    const STATUS_INACTIVE = 0;  // Không hoạt động
+
     protected $fillable = [
-        'TenCV'
+        'TenCV',
+        'TrangThai'
     ];
 
     /**
@@ -23,5 +28,29 @@ class Position extends Model
     public function employees()
     {
         return $this->hasMany(Employee::class, 'IDCV', 'IDCV');
+    }
+
+    /**
+     * Scope để lấy chỉ chức vụ đang hoạt động
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('TrangThai', self::STATUS_ACTIVE);
+    }
+
+    /**
+     * Scope để lấy chỉ chức vụ không hoạt động
+     */
+    public function scopeInactive($query)
+    {
+        return $query->where('TrangThai', self::STATUS_INACTIVE);
+    }
+
+    /**
+     * Đếm số nhân viên có chức vụ này
+     */
+    public function getEmployeeCountAttribute()
+    {
+        return $this->employees()->count();
     }
 }

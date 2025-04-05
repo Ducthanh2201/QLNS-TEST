@@ -13,9 +13,19 @@ class WorkType extends Model
     protected $primaryKey = 'IDLC';
     public $timestamps = false;
 
+    // Định nghĩa các trạng thái
+    const STATUS_ACTIVE = 1;    // Đang hoạt động
+    const STATUS_INACTIVE = 0;  // Không hoạt động
+
     protected $fillable = [
         'TenLC',
         'HeSo',
+        'TrangThai'
+    ];
+
+    protected $casts = [
+        'HeSo' => 'float',
+        'TrangThai' => 'integer',
     ];
 
     /**
@@ -24,5 +34,13 @@ class WorkType extends Model
     public function timeKeepings()
     {
         return $this->hasMany(TimeKeeping::class, 'IDLC', 'IDLC');
+    }
+
+    /**
+     * Scope để lấy chỉ các loại công đang hoạt động
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('TrangThai', self::STATUS_ACTIVE);
     }
 }
