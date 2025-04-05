@@ -14,10 +14,10 @@ class TimeKeeping extends Model
     protected $primaryKey = 'MABC';
     public $timestamps = false;
 
-    // Định nghĩa các trạng thái
+    // Định nghĩa các trạng thái bản ghi
     const STATUS_ACTIVE = 1;      // Đang hoạt động
     const STATUS_INACTIVE = 0;    // Không hoạt động
-    const STATUS_DELETED = 2;     // Đã xóa mềm
+    const STATUS_DELETED = 9;     // Đã xóa mềm - Thay đổi giá trị này từ 2 thành 9
 
     // Định nghĩa các trạng thái chấm công
     const ATTENDANCE_ONTIME = 1;      // Đúng giờ
@@ -201,7 +201,11 @@ class TimeKeeping extends Model
      */
     public function getAttendanceStatusTextAttribute()
     {
-        switch ($this->TrangThaiChamCong) {
+        if ($this->TrangThai == self::STATUS_DELETED) {
+            return 'Đã xóa';
+        }
+        
+        switch($this->TrangThai) {
             case self::ATTENDANCE_ONTIME:
                 return 'Đúng giờ';
             case self::ATTENDANCE_LATE:
@@ -226,21 +230,24 @@ class TimeKeeping extends Model
      */
     public function getAttendanceStatusClassAttribute()
     {
-        switch ($this->TrangThaiChamCong) {
+        if ($this->TrangThai == self::STATUS_DELETED) {
+            return 'bg-secondary';
+        }
+        
+        switch($this->TrangThai) {
             case self::ATTENDANCE_ONTIME:
                 return 'bg-success';
             case self::ATTENDANCE_LATE:
-                return 'bg-warning';
             case self::ATTENDANCE_EARLY_LEAVE:
-                return 'bg-info';
+                return 'bg-warning';
             case self::ATTENDANCE_OVERTIME:
-                return 'bg-purple';
+                return 'bg-info';
             case self::ATTENDANCE_ABSENT:
                 return 'bg-danger';
             case self::ATTENDANCE_LEAVE:
-                return 'bg-secondary';
-            case self::ATTENDANCE_BUSINESS:
                 return 'bg-primary';
+            case self::ATTENDANCE_BUSINESS:
+                return 'bg-secondary';
             default:
                 return 'bg-secondary';
         }
@@ -313,5 +320,11 @@ class TimeKeeping extends Model
         }
         
         return $this->TrangThai;
+    }
+
+    // Thêm method để kiểm tra xem bản ghi có bị xóa mềm không
+    public function isDeleted()
+    {
+        return $this->TrangThai == self::STATUS_DELETED;
     }
 }

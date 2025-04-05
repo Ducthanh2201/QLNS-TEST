@@ -31,21 +31,23 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="startTime">Giờ bắt đầu</label>
+                        <label for="startTime">Giờ làm việc bắt đầu</label>
                         <div class="input-group date" id="startTimePicker" data-target-input="nearest">
-                            <input type="text" class="form-control datetimepicker-input" data-target="#startTimePicker" id="startTime" name="startTime" value="08:00"/>
+                            <input type="text" class="form-control datetimepicker-input" id="startTime" name="startTime" 
+                                data-target="#startTimePicker" value="{{ session('config_start_time', '08:00') }}">
                             <div class="input-group-append" data-target="#startTimePicker" data-toggle="datetimepicker">
-                                <div class="input-group-text"><i class="far fa-clock"></i></div>
+                                <div class="input-group-text"><i class="fa fa-clock"></i></div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="endTime">Giờ kết thúc</label>
+                        <label for="endTime">Giờ làm việc kết thúc</label>
                         <div class="input-group date" id="endTimePicker" data-target-input="nearest">
-                            <input type="text" class="form-control datetimepicker-input" data-target="#endTimePicker" id="endTime" name="endTime" value="17:00"/>
+                            <input type="text" class="form-control datetimepicker-input" id="endTime" name="endTime" 
+                                data-target="#endTimePicker" value="{{ session('config_end_time', '17:00') }}">
                             <div class="input-group-append" data-target="#endTimePicker" data-toggle="datetimepicker">
-                                <div class="input-group-text"><i class="far fa-clock"></i></div>
+                                <div class="input-group-text"><i class="fa fa-clock"></i></div>
                             </div>
                         </div>
                     </div>
@@ -257,12 +259,43 @@
                             <a href="{{ route('admin.worktime.export') }}" class="dropdown-item">Xuất Excel</a>
                             <a href="#" class="dropdown-item">Nhập từ file</a>
                             <div class="dropdown-divider"></div>
+                            <a href="{{ route('admin.worktime.update-deleted-statuses') }}" class="dropdown-item text-primary">Cập nhật trạng thái đã xóa</a>
                             <a href="#" class="dropdown-item text-danger">Xóa tất cả</a>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="card-body">
+                <!-- Thêm switch hiển thị bản ghi đã xóa -->
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <form action="{{ route('admin.worktime.index') }}" method="GET" id="showDeletedForm">
+                            <!-- Giữ nguyên các tham số lọc hiện tại -->
+                            @if(request('month'))
+                                <input type="hidden" name="month" value="{{ request('month') }}">
+                            @endif
+                            @if(request('year'))
+                                <input type="hidden" name="year" value="{{ request('year') }}">
+                            @endif
+                            @if(request('position_id'))
+                                <input type="hidden" name="position_id" value="{{ request('position_id') }}">
+                            @endif
+                            @if(request('employee_id'))
+                                <input type="hidden" name="employee_id" value="{{ request('employee_id') }}">
+                            @endif
+                            @if(request('status'))
+                                <input type="hidden" name="status" value="{{ request('status') }}">
+                            @endif
+                            
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="showDeletedRecords" name="show_deleted" 
+                                    {{ request()->boolean('show_deleted') ? 'checked' : '' }}
+                                    onchange="document.getElementById('showDeletedForm').submit()">
+                                <label class="custom-control-label" for="showDeletedRecords">Hiển thị bản ghi đã xóa</label>
+                            </div>
+                        </form>
+                    </div>
+                </div>
                 <!-- Thêm trước bảng chấm công -->
                 @if(session('warning'))
                     <div class="alert alert-warning alert-dismissible">
@@ -364,7 +397,7 @@
                         </thead>
                         <tbody>
                             @forelse ($timeKeepings as $index => $timeKeeping)
-                                <tr class="worktime-record" 
+                                <tr class="worktime-record {{ $timeKeeping->TrangThai == \App\Models\TimeKeeping::STATUS_DELETED ? 'text-muted bg-light' : '' }}" 
                                     data-id="{{ $timeKeeping->MABC }}" 
                                     data-hours="{{ $timeKeeping->workHours['hours'] }}" 
                                     data-minutes="{{ $timeKeeping->workHours['minutes'] }}" 
@@ -378,23 +411,35 @@
                                     <td>{{ $timeKeeping->formattedTimeOut }}</td>
                                     <td>{{ $timeKeeping->workHours['formatted'] }}</td>
                                     <td>
-                                        <span class="badge {{ $timeKeeping->attendanceStatusClass }} status-badge">
-                                            {{ $timeKeeping->attendanceStatusText }}
-                                        </span>
+                                        @if($timeKeeping->TrangThai == \App\Models\TimeKeeping::STATUS_DELETED)
+                                            <span class="badge bg-secondary">Đã xóa</span>
+                                        @else
+                                            <span class="badge {{ $timeKeeping->attendanceStatusClass }} status-badge">
+                                                {{ $timeKeeping->attendanceStatusText }}
+                                            </span>
+                                        @endif
                                     </td>
                                     <td>
-                                        <a href="{{ route('admin.worktime.edit', $timeKeeping->MABC) }}" class="btn btn-primary btn-sm edit-worktime" title="Chỉnh sửa">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button class="btn btn-danger btn-sm delete-worktime" 
-                                            data-id="{{ $timeKeeping->MABC }}" 
-                                            data-toggle="modal" 
-                                            data-target="#deleteModal"
-                                            data-employee-name="{{ $timeKeeping->employee->TenNV ?? 'N/A' }}"
-                                            data-date="{{ $timeKeeping->formattedDate }}"
-                                            title="Xóa">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        @if($timeKeeping->TrangThai == \App\Models\TimeKeeping::STATUS_DELETED)
+                                            <a href="{{ route('admin.worktime.restore', $timeKeeping->MABC) }}" 
+                                               class="btn btn-info btn-sm restore-worktime" 
+                                               title="Khôi phục">
+                                                <i class="fas fa-trash-restore"></i>
+                                            </a>
+                                        @else
+                                            <a href="{{ route('admin.worktime.edit', $timeKeeping->MABC) }}" class="btn btn-primary btn-sm edit-worktime" title="Chỉnh sửa">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button class="btn btn-danger btn-sm delete-worktime" 
+                                                data-id="{{ $timeKeeping->MABC }}" 
+                                                data-toggle="modal" 
+                                                data-target="#deleteModal"
+                                                data-employee-name="{{ $timeKeeping->employee->TenNV ?? 'N/A' }}"
+                                                data-date="{{ $timeKeeping->formattedDate }}"
+                                                title="Xóa">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty

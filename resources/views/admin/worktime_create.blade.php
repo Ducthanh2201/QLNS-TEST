@@ -29,114 +29,114 @@
                         </div>
                     @endif
 
+                    <div class="form-group">
+                        <label for="MaNV">Nhân viên <span class="text-danger">*</span></label>
+                        <select class="form-control select2 @error('MaNV') is-invalid @enderror" id="MaNV" name="MaNV" required>
+                            <option value="">-- Chọn nhân viên --</option>
+                            @foreach($employees as $employee)
+                                <option value="{{ $employee->MaNV }}" {{ old('MaNV') == $employee->MaNV ? 'selected' : '' }}>
+                                    {{ $employee->MaNV }} - {{ $employee->TenNV }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('MaNV')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date">Ngày <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control @error('date') is-invalid @enderror" id="date" name="date" value="{{ old('date', $date) }}" required>
+                        @error('date')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="MaNV">Nhân viên <span class="text-danger">*</span></label>
-                                <select class="form-control select2 @error('MaNV') is-invalid @enderror" id="MaNV" name="MaNV" required>
-                                    <option value="">-- Chọn nhân viên --</option>
-                                    @foreach($employees as $employee)
-                                        <option value="{{ $employee->MaNV }}" {{ old('MaNV') == $employee->MaNV ? 'selected' : '' }}>
-                                            {{ $employee->TenNV }} - {{ $employee->position->TenCV ?? 'N/A' }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('MaNV')
-                                    <span class="invalid-feedback">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="form-group">
-                                <label for="date">Ngày <span class="text-danger">*</span></label>
-                                <div class="input-group date" id="datePicker" data-target-input="nearest">
-                                    <input type="date" class="form-control @error('date') is-invalid @enderror" id="date" name="date" value="{{ old('date', $date) }}" required/>
-                                </div>
-                                @error('date')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="form-group">
-                                <label for="IDLC">Loại công <span class="text-danger">*</span></label>
-                                <select class="form-control @error('IDLC') is-invalid @enderror" id="IDLC" name="IDLC" required>
-                                    <option value="">-- Chọn loại công --</option>
-                                    @foreach($workTypes as $workType)
-                                        <option value="{{ $workType->IDLC }}" {{ old('IDLC') == $workType->IDLC ? 'selected' : '' }}>
-                                            {{ $workType->TenLC }} (Hệ số: {{ $workType->HeSo }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('IDLC')
-                                    <span class="invalid-feedback">{{ $message }}</span>
+                                <label for="timeIn">Giờ vào <span class="text-danger">*</span></label>
+                                <input type="time" class="form-control @error('timeIn') is-invalid @enderror" id="timeIn" name="timeIn" value="{{ old('timeIn', $time) }}" required>
+                                @error('timeIn')
+                                    <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
-
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="timeIn">Giờ vào <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="time" class="form-control @error('timeIn') is-invalid @enderror" id="timeIn" name="timeIn" value="{{ old('timeIn', $time) }}" required/>
-                                </div>
-                                @error('timeIn')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="form-group">
                                 <label for="timeOut">Giờ ra <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="time" class="form-control @error('timeOut') is-invalid @enderror" id="timeOut" name="timeOut" value="{{ old('timeOut', $time) }}" required/>
-                                </div>
+                                <input type="time" class="form-control @error('timeOut') is-invalid @enderror" id="timeOut" name="timeOut" value="{{ old('timeOut', $time) }}" required>
                                 @error('timeOut')
-                                    <span class="text-danger">{{ $message }}</span>
+                                    <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                            </div>
-
-                            <div class="form-group">
-                                <label for="status">Trạng thái chấm công <span class="text-danger">*</span></label>
-                                <select class="form-control @error('status') is-invalid @enderror" id="status" name="status" required>
-                                    <option value="{{ \App\Models\TimeKeeping::ATTENDANCE_ONTIME }}" {{ old('status', \App\Models\TimeKeeping::ATTENDANCE_ONTIME) == \App\Models\TimeKeeping::ATTENDANCE_ONTIME ? 'selected' : '' }}>
-                                        Đúng giờ
-                                    </option>
-                                    <option value="{{ \App\Models\TimeKeeping::ATTENDANCE_LATE }}" {{ old('status') == \App\Models\TimeKeeping::ATTENDANCE_LATE ? 'selected' : '' }}>
-                                        Đi muộn
-                                    </option>
-                                    <option value="{{ \App\Models\TimeKeeping::ATTENDANCE_EARLY_LEAVE }}" {{ old('status') == \App\Models\TimeKeeping::ATTENDANCE_EARLY_LEAVE ? 'selected' : '' }}>
-                                        Về sớm
-                                    </option>
-                                    <option value="{{ \App\Models\TimeKeeping::ATTENDANCE_OVERTIME }}" {{ old('status') == \App\Models\TimeKeeping::ATTENDANCE_OVERTIME ? 'selected' : '' }}>
-                                        Làm thêm giờ
-                                    </option>
-                                    <option value="{{ \App\Models\TimeKeeping::ATTENDANCE_ABSENT }}" {{ old('status') == \App\Models\TimeKeeping::ATTENDANCE_ABSENT ? 'selected' : '' }}>
-                                        Vắng mặt
-                                    </option>
-                                </select>
-                                @error('status')
-                                    <span class="invalid-feedback">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="form-group">
-                                <label for="TrangThaiChamCong">Phương thức chấm công</label>
-                                <select class="form-control" id="TrangThaiChamCong" name="TrangThaiChamCong">
-                                    <option value="{{ \App\Models\TimeKeeping::MANUAL_ATTENDANCE }}" selected>Chấm công thủ công</option>
-                                    <option value="{{ \App\Models\TimeKeeping::AUTO_ATTENDANCE }}">Chấm công tự động</option>
-                                </select>
                             </div>
                         </div>
                     </div>
 
+                    <div id="workHoursCalculation" class="alert alert-info d-none">
+                        Tổng thời gian làm việc: <strong id="totalWorkHours">0 giờ 0 phút</strong>
+                    </div>
+
                     <div class="form-group">
-                        <div id="workHoursCalculation" class="alert alert-info d-none">
-                            Tổng thời gian làm việc: <strong id="totalWorkHours">0</strong> giờ
-                        </div>
+                        <label for="IDLC">Loại công <span class="text-danger">*</span></label>
+                        <select class="form-control @error('IDLC') is-invalid @enderror" id="IDLC" name="IDLC" required>
+                            <option value="">-- Chọn loại công --</option>
+                            @foreach($workTypes as $workType)
+                                <option value="{{ $workType->IDLC }}" {{ old('IDLC') == $workType->IDLC ? 'selected' : '' }}>
+                                    {{ $workType->TenLC }} (Hệ số: {{ $workType->HeSo }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('IDLC')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Trạng thái <span class="text-danger">*</span></label>
+                        <select class="form-control @error('status') is-invalid @enderror" id="status" name="status" required>
+                            <option value="{{ \App\Models\TimeKeeping::ATTENDANCE_ONTIME }}" {{ old('status', \App\Models\TimeKeeping::ATTENDANCE_ONTIME) == \App\Models\TimeKeeping::ATTENDANCE_ONTIME ? 'selected' : '' }}>
+                                Đúng giờ
+                            </option>
+                            <option value="{{ \App\Models\TimeKeeping::ATTENDANCE_LATE }}" {{ old('status') == \App\Models\TimeKeeping::ATTENDANCE_LATE ? 'selected' : '' }}>
+                                Đi muộn
+                            </option>
+                            <option value="{{ \App\Models\TimeKeeping::ATTENDANCE_EARLY_LEAVE }}" {{ old('status') == \App\Models\TimeKeeping::ATTENDANCE_EARLY_LEAVE ? 'selected' : '' }}>
+                                Về sớm
+                            </option>
+                            <option value="{{ \App\Models\TimeKeeping::ATTENDANCE_OVERTIME }}" {{ old('status') == \App\Models\TimeKeeping::ATTENDANCE_OVERTIME ? 'selected' : '' }}>
+                                Làm thêm giờ
+                            </option>
+                            <option value="{{ \App\Models\TimeKeeping::ATTENDANCE_ABSENT }}" {{ old('status') == \App\Models\TimeKeeping::ATTENDANCE_ABSENT ? 'selected' : '' }}>
+                                Vắng mặt
+                            </option>
+                        </select>
+                        @error('status')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="TrangThaiChamCong">Phương thức chấm công</label>
+                        <select class="form-control" id="TrangThaiChamCong" name="TrangThaiChamCong">
+                            <option value="{{ \App\Models\TimeKeeping::MANUAL_ATTENDANCE }}" selected>Chấm công thủ công</option>
+                            <option value="{{ \App\Models\TimeKeeping::AUTO_ATTENDANCE }}">Chấm công tự động</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="GhiChu">Ghi chú</label>
+                        <textarea class="form-control" id="GhiChu" name="GhiChu" rows="3">{{ old('GhiChu') }}</textarea>
                     </div>
                 </div>
 
                 <div class="card-footer">
-                    <button type="submit" class="btn btn-primary">Lưu lại</button>
-                    <a href="{{ route('admin.worktime.index') }}" class="btn btn-default float-right">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Lưu
+                    </button>
+                    <a href="{{ route('admin.worktime.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Hủy
+                    </a>
                 </div>
             </form>
         </div>

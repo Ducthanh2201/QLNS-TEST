@@ -96,6 +96,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
         ->name('worktime.update-status');
     Route::get('/worktime/fix-all', [App\Http\Controllers\Admin\WorkTimeController::class, 'fixAllStatuses'])
         ->name('worktime.fix-all');
+    Route::get('/worktime/{id}/restore', [App\Http\Controllers\Admin\WorkTimeController::class, 'restore'])->name('worktime.restore');
+    Route::get('/worktime/update-deleted-statuses', [App\Http\Controllers\Admin\WorkTimeController::class, 'updateDeletedStatuses'])->name('worktime.update-deleted-statuses');
     
     // Attendance
     Route::get('/attendance', function () {
@@ -119,15 +121,15 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
 
     // Routes quản lý chấm công
     Route::prefix('attendance')->name('attendance.')->group(function() {
-        Route::get('/', [App\Http\Controllers\Admin\AttendanceController::class, 'index'])->name('index');
-        Route::get('/create', [App\Http\Controllers\Admin\AttendanceController::class, 'create'])->name('create');
-        Route::post('/', [App\Http\Controllers\Admin\AttendanceController::class, 'store'])->name('store');
-        Route::get('/{id}', [App\Http\Controllers\Admin\AttendanceController::class, 'show'])->name('show');
-        Route::get('/{id}/edit', [App\Http\Controllers\Admin\AttendanceController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [App\Http\Controllers\Admin\AttendanceController::class, 'update'])->name('update');
-        Route::post('/{id}/soft-delete', [App\Http\Controllers\Admin\AttendanceController::class, 'softDelete'])->name('soft-delete');
-        Route::post('/{id}/restore', [App\Http\Controllers\Admin\AttendanceController::class, 'restore'])->name('restore');
-        Route::post('/generate-for-all', [App\Http\Controllers\Admin\AttendanceController::class, 'generateForAll'])->name('generate-for-all');
+        // Route::get('/', [App\Http\Controllers\Admin\AttendanceController::class, 'index'])->name('index');
+        // Route::get('/create', [App\Http\Controllers\Admin\AttendanceController::class, 'create'])->name('create');
+        // Route::post('/', [App\Http\Controllers\Admin\AttendanceController::class, 'store'])->name('store');
+        // Route::get('/{id}', [App\Http\Controllers\Admin\AttendanceController::class, 'show'])->name('show');
+        // Route::get('/{id}/edit', [App\Http\Controllers\Admin\AttendanceController::class, 'edit'])->name('edit');
+        // Route::put('/{id}', [App\Http\Controllers\Admin\AttendanceController::class, 'update'])->name('update');
+        // Route::post('/{id}/soft-delete', [App\Http\Controllers\Admin\AttendanceController::class, 'softDelete'])->name('soft-delete');
+        // Route::post('/{id}/restore', [App\Http\Controllers\Admin\AttendanceController::class, 'restore'])->name('restore');
+        // Route::post('/generate-for-all', [App\Http\Controllers\Admin\AttendanceController::class, 'generateForAll'])->name('generate-for-all');
     });
 });
 

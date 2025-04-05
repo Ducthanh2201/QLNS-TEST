@@ -23,6 +23,7 @@ class WorkTimeController extends Controller
         $employeeId = $request->input('employee_id');
         $positionId = $request->input('position_id');
         $status = $request->input('status');
+        $showDeleted = $request->boolean('show_deleted', false);
         
         // Đầu tiên, cập nhật tất cả bản ghi có giờ làm nhưng trạng thái là vắng mặt
         DB::table('bangcong')
@@ -49,13 +50,23 @@ class WorkTimeController extends Controller
                     $q->where('IDCV', $positionId);
                 });
             })
-            ->when($status !== null, function($query) use ($status) {
+            ->when($status !== null && $status !== '', function($query) use ($status) {
                 return $query->where('TrangThai', $status);
             })
             ->where('Nam', $year)
-            ->where('Thang', $month)
-            ->where('TrangThai', '!=', TimeKeeping::STATUS_DELETED)
-            ->orderBy('Ngay', 'asc');
+            ->where('Thang', $month);
+            
+        // Nếu không hiển thị mục đã xóa mềm, thêm điều kiện lọc
+        if (!$showDeleted) {
+            $timeKeepingsQuery->where('TrangThai', '!=', TimeKeeping::STATUS_DELETED);
+        }
+
+        // Thêm câu lệnh log để kiểm tra
+        \Illuminate\Support\Facades\Log::info('Show deleted: ' . ($showDeleted ? 'true' : 'false'));
+        \Illuminate\Support\Facades\Log::info('Query SQL: ' . $timeKeepingsQuery->toSql());
+        \Illuminate\Support\Facades\Log::info('SQL Bindings: ' . json_encode($timeKeepingsQuery->getBindings()));
+        
+        $timeKeepingsQuery->orderBy('Ngay', 'asc');
         
         $timeKeepings = $timeKeepingsQuery->paginate(15);
         
@@ -226,7 +237,8 @@ class WorkTimeController extends Controller
             'workTypes', 
             'month', 
             'year', 
-            'statistics'
+            'statistics',
+            'showDeleted'
         ));
     }
 
@@ -503,6 +515,7 @@ class WorkTimeController extends Controller
     public function destroy(TimeKeeping $timeKeeping)
     {
         try {
+            // STATUS_DELETED = 9 (đã thay đổi từ 2 thành 9)
             $timeKeeping->update(['TrangThai' => TimeKeeping::STATUS_DELETED]);
             return redirect()->route('admin.worktime.index', [
                 'month' => $timeKeeping->Thang,
@@ -709,5 +722,73 @@ class WorkTimeController extends Controller
         
         return redirect()->route('admin.worktime.index')
             ->with('success', "Đã cập nhật {$updated} bản ghi có trạng thái không chính xác.");
+    }
+
+    /**
+     * Khôi phục bản ghi đã xóa mềm
+     */
+    public function restore($id)
+    {
+        try {
+            $timeKeeping = TimeKeeping::findOrFail($id);
+            
+            // Kiểm tra nếu bản ghi đã bị xóa mềm
+            if ($timeKeeping->TrangThai == TimeKeeping::STATUS_DELETED) {
+                // Tính toán lại trạng thái chính xác dựa trên giờ làm
+                $startTime = $timeKeeping->Giovao * 60 + $timeKeeping->Phutvao;
+                $endTime = $timeKeeping->GioRa * 60 + $timeKeeping->PhutRa;
+                
+                if ($endTime < $startTime) {
+                    $endTime += 24 * 60;
+                }
+                
+                $minutes = $endTime - $startTime;
+                
+                if ($minutes > 0) {
+                    if ($minutes > 9 * 60) {
+                        $newStatus = TimeKeeping::ATTENDANCE_OVERTIME;
+                    } else if ($timeKeeping->Giovao > 8 || ($timeKeeping->Giovao == 8 && $timeKeeping->Phutvao > 15)) {
+                        $newStatus = TimeKeeping::ATTENDANCE_LATE;
+                    } else if (($timeKeeping->GioRa < 17 || ($timeKeeping->GioRa == 17 && $timeKeeping->PhutRa < 0)) && 
+                              ($timeKeeping->GioRa > 9 || ($timeKeeping->GioRa == 9 && $timeKeeping->PhutRa > 0))) {
+                        $newStatus = TimeKeeping::ATTENDANCE_EARLY_LEAVE;
+                    } else {
+                        $newStatus = TimeKeeping::ATTENDANCE_ONTIME;
+                    }
+                } else {
+                    $newStatus = TimeKeeping::ATTENDANCE_ABSENT;
+                }
+                
+                $timeKeeping->update(['TrangThai' => $newStatus]);
+                
+                return redirect()->route('admin.worktime.index', [
+                    'month' => $timeKeeping->Thang,
+                    'year' => $timeKeeping->Nam,
+                    'show_deleted' => true
+                ])->with('success', 'Đã khôi phục bản ghi chấm công thành công!');
+            }
+            
+            return redirect()->back()->with('error', 'Bản ghi này không trong trạng thái đã xóa');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Lỗi khi khôi phục bản ghi: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cập nhật lại tất cả trạng thái đã xóa mềm cũ
+     */
+    public function updateDeletedStatuses()
+    {
+        try {
+            // Cập nhật từ 2 (giá trị cũ) sang 9 (giá trị mới)
+            $count = DB::table('bangcong')
+                ->where('TrangThai', 2)
+                ->update(['TrangThai' => TimeKeeping::STATUS_DELETED]);
+                
+            return redirect()->route('admin.worktime.index')
+                ->with('success', "Đã cập nhật {$count} bản ghi đã xóa mềm từ trạng thái cũ sang trạng thái mới.");
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Lỗi khi cập nhật: ' . $e->getMessage());
+        }
     }
 }
