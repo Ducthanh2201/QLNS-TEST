@@ -102,9 +102,14 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::get('/attendance/export', [AttendanceController::class, 'export'])->name('attendance.export');
     
     // Salary
-    Route::get('/salary', function () {
-        return view('admin.salary');
-    })->name('salary.index');
+    Route::get('/salary', [App\Http\Controllers\Admin\SalaryController::class, 'index'])->name('salary.index');
+    Route::post('/salary/calculate', [App\Http\Controllers\Admin\SalaryController::class, 'calculate'])->name('salary.calculate');
+    Route::post('/salary/batch-calculate', [App\Http\Controllers\Admin\SalaryController::class, 'batchCalculate'])->name('salary.batchCalculate');
+    Route::get('/salary/{salary}', [App\Http\Controllers\Admin\SalaryController::class, 'show'])->name('salary.show');
+    Route::put('/salary/{salary}', [App\Http\Controllers\Admin\SalaryController::class, 'update'])->name('salary.update');
+    Route::get('/salary/{salary}/payslip', [App\Http\Controllers\Admin\SalaryController::class, 'exportPayslip'])->name('salary.payslip');
+    Route::post('/salary/{salary}/send-email', [App\Http\Controllers\Admin\SalaryController::class, 'sendPayslipEmail'])->name('salary.send-email');
+    Route::put('/salary/{salary}/status', [App\Http\Controllers\Admin\SalaryController::class, 'updateStatus'])->name('salary.updateStatus');
     
     // Reward & Discipline
     Route::get('/reward-discipline', function () {
@@ -127,6 +132,20 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
         Route::post('/generate', [App\Http\Controllers\Admin\AttendanceController::class, 'generate'])->name('generate');
         Route::get('/export', [App\Http\Controllers\Admin\AttendanceController::class, 'export'])->name('export');
     });
+
+    // Reward & Discipline Routes
+    Route::get('/reward-discipline', [App\Http\Controllers\Admin\RewardDisciplineController::class, 'index'])
+        ->name('reward-discipline.index');
+    Route::post('/reward-discipline/reward', [App\Http\Controllers\Admin\RewardDisciplineController::class, 'storeReward'])
+        ->name('reward-discipline.store-reward');
+    Route::post('/reward-discipline/penalty', [App\Http\Controllers\Admin\RewardDisciplineController::class, 'storePenalty'])
+        ->name('reward-discipline.store-penalty');
+    Route::get('/reward-discipline/{id}', [App\Http\Controllers\Admin\RewardDisciplineController::class, 'show'])
+        ->name('reward-discipline.show');
+    Route::put('/reward-discipline/{id}', [App\Http\Controllers\Admin\RewardDisciplineController::class, 'update'])
+        ->name('reward-discipline.update');
+    Route::delete('/reward-discipline/{id}', [App\Http\Controllers\Admin\RewardDisciplineController::class, 'destroy'])
+        ->name('reward-discipline.destroy');
 });
 
 // Employee Routes

@@ -10,7 +10,7 @@ class RewardPenalty extends Model
 {
     use HasFactory;
 
-    protected $table = 'ktkl';
+    protected $table = 'kt/kl';
     protected $primaryKey = 'ID';
     public $timestamps = false;
 
@@ -20,15 +20,19 @@ class RewardPenalty extends Model
 
     protected $fillable = [
         'SoKTKL',
+        'TieuDe',
         'NoiDung',
         'Ngay',
         'MaNV',
-        'LoaiKTKL',
+        'LoaiKT/KL',
+        'SoTien',
     ];
 
     protected $casts = [
         'Ngay' => 'datetime',
-        'LoaiKTKL' => 'integer',
+        'LoaiKT/KL' => 'integer',
+        'SoTien' => 'float',
+        'SoKTKL' => 'integer',  // Thêm dòng này để đảm bảo SoKTKL được xử lý là integer
     ];
 
     /**
@@ -44,7 +48,7 @@ class RewardPenalty extends Model
      */
     public function isReward()
     {
-        return $this->LoaiKTKL == self::TYPE_REWARD;
+        return $this->attributes['LoaiKT/KL'] == self::TYPE_REWARD;
     }
 
     /**
@@ -52,7 +56,7 @@ class RewardPenalty extends Model
      */
     public function isPenalty()
     {
-        return $this->LoaiKTKL == self::TYPE_PENALTY;
+        return $this->attributes['LoaiKT/KL'] == self::TYPE_PENALTY;
     }
 
     /**
@@ -64,11 +68,39 @@ class RewardPenalty extends Model
     }
 
     /**
+     * Lấy class CSS cho loại
+     */
+    public function getTypeClassAttribute()
+    {
+        return $this->isReward() ? 'badge-reward' : 'badge-discipline';
+    }
+
+    /**
+     * Format số tiền với dấu + hoặc -
+     */
+    public function getFormattedAmountAttribute()
+    {
+        if ($this->isReward()) {
+            return '+' . number_format($this->SoTien, 0, ',', '.') . ' ₫';
+        } else {
+            return '-' . number_format($this->SoTien, 0, ',', '.') . ' ₫';
+        }
+    }
+
+    /**
+     * Format ngày
+     */
+    public function getFormattedDateAttribute()
+    {
+        return $this->Ngay ? $this->Ngay->format('d/m/Y') : '';
+    }
+
+    /**
      * Scope để lấy chỉ khen thưởng
      */
     public function scopeRewards($query)
     {
-        return $query->where('LoaiKTKL', self::TYPE_REWARD);
+        return $query->where('LoaiKT/KL', self::TYPE_REWARD);
     }
 
     /**
@@ -76,7 +108,7 @@ class RewardPenalty extends Model
      */
     public function scopePenalties($query)
     {
-        return $query->where('LoaiKTKL', self::TYPE_PENALTY);
+        return $query->where('LoaiKT/KL', self::TYPE_PENALTY);
     }
 
     /**
@@ -95,7 +127,7 @@ class RewardPenalty extends Model
             ->whereMonth('Ngay', $month);
             
         if ($type !== null) {
-            $query->where('LoaiKTKL', $type);
+            $query->where('LoaiKT/KL', $type);
         }
         
         return $query->orderBy('Ngay', 'asc')->get();
@@ -117,7 +149,7 @@ class RewardPenalty extends Model
             ->whereMonth('Ngay', $month);
             
         if ($type !== null) {
-            $query->where('LoaiKTKL', $type);
+            $query->where('LoaiKT/KL', $type);
         }
         
         return $query->count();

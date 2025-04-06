@@ -84,88 +84,35 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Dữ liệu mẫu - sẽ được thay thế bằng dữ liệu thực -->
+                                @foreach($rewardDisciplines as $item)
                                 <tr>
-                                    <td>1</td>
+                                    <td>{{ $item->ID }}</td>
                                     <td>
                                         <div class="user-panel d-flex">
                                             <div class="image">
-                                                <img src="https://adminlte.io/themes/v3/dist/img/user1-128x128.jpg" class="img-circle" alt="User Image" style="width: 35px; height: 35px;">
+                                                <img src="{{ $item->employee && $item->employee->AnhDaiDien ? asset('storage/' . $item->employee->AnhDaiDien) : asset('img/default-avatar.jpg') }}" class="img-circle" alt="User Image" style="width: 35px; height: 35px;">
                                             </div>
                                             <div class="info">
-                                                Nguyễn Văn A<br>
-                                                <small class="text-muted">NV001 - Phòng IT</small>
+                                                {{ $item->employee ? $item->employee->TenNV : 'N/A' }}<br>
+                                                <small>{{ $item->employee && $item->employee->department ? $item->employee->department->TenPB : 'N/A' }}</small>
                                             </div>
                                         </div>
                                     </td>
-                                    <td><span class="badge badge-reward">Khen thưởng</span></td>
-                                    <td>Hoàn thành dự án sớm</td>
-                                    <td>Hoàn thành dự án X trước thời hạn 2 tuần, giúp công ty tiết kiệm chi phí</td>
-                                    <td class="reward-amount">+2,000,000 ₫</td>
-                                    <td>01/04/2023</td>
+                                    <td><span class="badge {{ $item->type_class }}">{{ $item->type_name }}</span></td>
+                                    <td>{{ $item->TieuDe }}</td>
+                                    <td>{{ $item->NoiDung }}</td>
+                                    <td class="{{ $item->isReward() ? 'reward-amount' : 'discipline-amount' }}">{{ $item->formatted_amount }}</td>
+                                    <td>{{ $item->formatted_date }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#modal-edit-reward">
+                                        <button class="btn btn-sm btn-info edit-reward-discipline" data-id="{{ $item->ID }}" data-toggle="modal" data-target="{{ $item->isReward() ? '#modal-edit-reward' : '#modal-edit-discipline' }}">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modal-delete">
+                                        <button class="btn btn-sm btn-danger delete-reward-discipline" data-id="{{ $item->ID }}" data-toggle="modal" data-target="#modal-delete">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>
-                                        <div class="user-panel d-flex">
-                                            <div class="image">
-                                                <img src="https://adminlte.io/themes/v3/dist/img/user8-128x128.jpg" class="img-circle" alt="User Image" style="width: 35px; height: 35px;">
-                                            </div>
-                                            <div class="info">
-                                                Trần Thị B<br>
-                                                <small class="text-muted">NV002 - Phòng Marketing</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge badge-discipline">Kỷ luật</span></td>
-                                    <td>Đi làm trễ</td>
-                                    <td>Đi làm trễ 3 lần trong tháng không có lý do</td>
-                                    <td class="discipline-amount">-500,000 ₫</td>
-                                    <td>15/04/2023</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#modal-edit-discipline">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modal-delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>
-                                        <div class="user-panel d-flex">
-                                            <div class="image">
-                                                <img src="https://adminlte.io/themes/v3/dist/img/user3-128x128.jpg" class="img-circle" alt="User Image" style="width: 35px; height: 35px;">
-                                            </div>
-                                            <div class="info">
-                                                Lê Văn C<br>
-                                                <small class="text-muted">NV003 - Phòng Kỹ thuật</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge badge-reward">Khen thưởng</span></td>
-                                    <td>Sáng kiến cải tiến</td>
-                                    <td>Đề xuất giải pháp cải tiến quy trình làm việc, tăng hiệu suất 20%</td>
-                                    <td class="reward-amount">+3,000,000 ₫</td>
-                                    <td>10/05/2023</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#modal-edit-reward">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modal-delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -189,59 +136,34 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Chỉ hiển thị dữ liệu khen thưởng -->
+                                @foreach($rewards as $item)
                                 <tr>
-                                    <td>1</td>
+                                    <td>{{ $item->ID }}</td>
                                     <td>
                                         <div class="user-panel d-flex">
                                             <div class="image">
-                                                <img src="https://adminlte.io/themes/v3/dist/img/user1-128x128.jpg" class="img-circle" alt="User Image" style="width: 35px; height: 35px;">
+                                                <img src="{{ $item->employee && $item->employee->AnhDaiDien ? asset('storage/' . $item->employee->AnhDaiDien) : asset('img/default-avatar.jpg') }}" class="img-circle" alt="User Image" style="width: 35px; height: 35px;">
                                             </div>
                                             <div class="info">
-                                                Nguyễn Văn A<br>
-                                                <small class="text-muted">NV001 - Phòng IT</small>
+                                                {{ $item->employee ? $item->employee->TenNV : 'N/A' }}<br>
+                                                <small>{{ $item->employee && $item->employee->department ? $item->employee->department->TenPB : 'N/A' }}</small>
                                             </div>
                                         </div>
                                     </td>
-                                    <td>Hoàn thành dự án sớm</td>
-                                    <td>Hoàn thành dự án X trước thời hạn 2 tuần, giúp công ty tiết kiệm chi phí</td>
-                                    <td class="reward-amount">+2,000,000 ₫</td>
-                                    <td>01/04/2023</td>
+                                    <td>{{ $item->TieuDe }}</td>
+                                    <td>{{ $item->NoiDung }}</td>
+                                    <td class="reward-amount">{{ $item->formatted_amount }}</td>
+                                    <td>{{ $item->formatted_date }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#modal-edit-reward">
+                                        <button class="btn btn-sm btn-info edit-reward-discipline" data-id="{{ $item->ID }}" data-toggle="modal" data-target="#modal-edit-reward">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modal-delete">
+                                        <button class="btn btn-sm btn-danger delete-reward-discipline" data-id="{{ $item->ID }}" data-toggle="modal" data-target="#modal-delete">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>
-                                        <div class="user-panel d-flex">
-                                            <div class="image">
-                                                <img src="https://adminlte.io/themes/v3/dist/img/user3-128x128.jpg" class="img-circle" alt="User Image" style="width: 35px; height: 35px;">
-                                            </div>
-                                            <div class="info">
-                                                Lê Văn C<br>
-                                                <small class="text-muted">NV003 - Phòng Kỹ thuật</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>Sáng kiến cải tiến</td>
-                                    <td>Đề xuất giải pháp cải tiến quy trình làm việc, tăng hiệu suất 20%</td>
-                                    <td class="reward-amount">+3,000,000 ₫</td>
-                                    <td>10/05/2023</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#modal-edit-reward">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modal-delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -265,33 +187,34 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Chỉ hiển thị dữ liệu kỷ luật -->
+                                @foreach($penalties as $item)
                                 <tr>
-                                    <td>2</td>
+                                    <td>{{ $item->ID }}</td>
                                     <td>
                                         <div class="user-panel d-flex">
                                             <div class="image">
-                                                <img src="https://adminlte.io/themes/v3/dist/img/user8-128x128.jpg" class="img-circle" alt="User Image" style="width: 35px; height: 35px;">
+                                                <img src="{{ $item->employee && $item->employee->AnhDaiDien ? asset('storage/' . $item->employee->AnhDaiDien) : asset('img/default-avatar.jpg') }}" class="img-circle" alt="User Image" style="width: 35px; height: 35px;">
                                             </div>
                                             <div class="info">
-                                                Trần Thị B<br>
-                                                <small class="text-muted">NV002 - Phòng Marketing</small>
+                                                {{ $item->employee ? $item->employee->TenNV : 'N/A' }}<br>
+                                                <small>{{ $item->employee && $item->employee->department ? $item->employee->department->TenPB : 'N/A' }}</small>
                                             </div>
                                         </div>
                                     </td>
-                                    <td>Đi làm trễ</td>
-                                    <td>Đi làm trễ 3 lần trong tháng không có lý do</td>
-                                    <td class="discipline-amount">-500,000 ₫</td>
-                                    <td>15/04/2023</td>
+                                    <td>{{ $item->TieuDe }}</td>
+                                    <td>{{ $item->NoiDung }}</td>
+                                    <td class="discipline-amount">{{ $item->formatted_amount }}</td>
+                                    <td>{{ $item->formatted_date }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#modal-edit-discipline">
+                                        <button class="btn btn-sm btn-info edit-reward-discipline" data-id="{{ $item->ID }}" data-toggle="modal" data-target="#modal-edit-discipline">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modal-delete">
+                                        <button class="btn btn-sm btn-danger delete-reward-discipline" data-id="{{ $item->ID }}" data-toggle="modal" data-target="#modal-delete">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
                                 </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -311,16 +234,16 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="#" method="POST">
+            <form action="{{ route('admin.reward-discipline.store-reward') }}" method="POST">
                 @csrf
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="employee_id">Nhân viên <span class="text-danger">*</span></label>
                         <select class="form-control select2" id="employee_id" name="employee_id" required>
                             <option value="">-- Chọn nhân viên --</option>
-                            <option value="1">NV001 - Nguyễn Văn A - Phòng IT</option>
-                            <option value="2">NV002 - Trần Thị B - Phòng Marketing</option>
-                            <option value="3">NV003 - Lê Văn C - Phòng Kỹ thuật</option>
+                            @foreach($employees as $employee)
+                                <option value="{{ $employee->MaNV }}">{{ $employee->MaNV }} - {{ $employee->TenNV }} - {{ $employee->department ? $employee->department->TenPB : 'N/A' }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="form-group">
@@ -343,7 +266,7 @@
                     <div class="form-group">
                         <label for="reward_date">Ngày <span class="text-danger">*</span></label>
                         <div class="input-group date" id="reward_date_picker" data-target-input="nearest">
-                            <input type="text" class="form-control datetimepicker-input" id="reward_date" name="date" data-target="#reward_date_picker" required>
+                            <input type="text" class="form-control datetimepicker-input" id="reward_date" name="date" data-target="#reward_date_picker" required value="{{ date('d/m/Y') }}">
                             <div class="input-group-append" data-target="#reward_date_picker" data-toggle="datetimepicker">
                                 <div class="input-group-text"><i class="fa fa-calendar"></i></div>
                             </div>
@@ -369,16 +292,16 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="#" method="POST">
+            <form action="{{ route('admin.reward-discipline.store-penalty') }}" method="POST">
                 @csrf
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="discipline_employee_id">Nhân viên <span class="text-danger">*</span></label>
                         <select class="form-control select2" id="discipline_employee_id" name="employee_id" required>
                             <option value="">-- Chọn nhân viên --</option>
-                            <option value="1">NV001 - Nguyễn Văn A - Phòng IT</option>
-                            <option value="2">NV002 - Trần Thị B - Phòng Marketing</option>
-                            <option value="3">NV003 - Lê Văn C - Phòng Kỹ thuật</option>
+                            @foreach($employees as $employee)
+                                <option value="{{ $employee->MaNV }}">{{ $employee->MaNV }} - {{ $employee->TenNV }} - {{ $employee->department ? $employee->department->TenPB : 'N/A' }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="form-group">
@@ -401,7 +324,7 @@
                     <div class="form-group">
                         <label for="discipline_date">Ngày <span class="text-danger">*</span></label>
                         <div class="input-group date" id="discipline_date_picker" data-target-input="nearest">
-                            <input type="text" class="form-control datetimepicker-input" id="discipline_date" name="date" data-target="#discipline_date_picker" required>
+                            <input type="text" class="form-control datetimepicker-input" id="discipline_date" name="date" data-target="#discipline_date_picker" required value="{{ date('d/m/Y') }}">
                             <div class="input-group-append" data-target="#discipline_date_picker" data-toggle="datetimepicker">
                                 <div class="input-group-text"><i class="fa fa-calendar"></i></div>
                             </div>
@@ -427,7 +350,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="#" method="POST">
+            <form id="edit-reward-form" action="{{ route('admin.reward-discipline.update', 0) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="modal-body">
@@ -435,18 +358,18 @@
                         <label for="edit_reward_employee_id">Nhân viên <span class="text-danger">*</span></label>
                         <select class="form-control select2" id="edit_reward_employee_id" name="employee_id" required>
                             <option value="">-- Chọn nhân viên --</option>
-                            <option value="1" selected>NV001 - Nguyễn Văn A - Phòng IT</option>
-                            <option value="2">NV002 - Trần Thị B - Phòng Marketing</option>
-                            <option value="3">NV003 - Lê Văn C - Phòng Kỹ thuật</option>
+                            @foreach($employees as $employee)
+                                <option value="{{ $employee->MaNV }}">{{ $employee->MaNV }} - {{ $employee->TenNV }} - {{ $employee->department ? $employee->department->TenPB : 'N/A' }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="edit_reward_title">Tiêu đề <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="edit_reward_title" name="title" value="Hoàn thành dự án sớm" required>
+                        <input type="text" class="form-control" id="edit_reward_title" name="title" required>
                     </div>
                     <div class="form-group">
                         <label for="edit_reward_description">Mô tả</label>
-                        <textarea class="form-control" id="edit_reward_description" name="description" rows="3">Hoàn thành dự án X trước thời hạn 2 tuần, giúp công ty tiết kiệm chi phí</textarea>
+                        <textarea class="form-control" id="edit_reward_description" name="description" rows="3"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="edit_reward_amount">Số tiền <span class="text-danger">*</span></label>
@@ -454,13 +377,13 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text">₫</span>
                             </div>
-                            <input type="number" class="form-control" id="edit_reward_amount" name="amount" value="2000000" min="0" required>
+                            <input type="number" class="form-control" id="edit_reward_amount" name="amount" min="0" required>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="edit_reward_date">Ngày <span class="text-danger">*</span></label>
                         <div class="input-group date" id="edit_reward_date_picker" data-target-input="nearest">
-                            <input type="text" class="form-control datetimepicker-input" id="edit_reward_date" name="date" value="01/04/2023" data-target="#edit_reward_date_picker" required>
+                            <input type="text" class="form-control datetimepicker-input" id="edit_reward_date" name="date" data-target="#edit_reward_date_picker" required>
                             <div class="input-group-append" data-target="#edit_reward_date_picker" data-toggle="datetimepicker">
                                 <div class="input-group-text"><i class="fa fa-calendar"></i></div>
                             </div>
@@ -486,7 +409,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="#" method="POST">
+            <form id="edit-discipline-form" action="{{ route('admin.reward-discipline.update', 0) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="modal-body">
@@ -494,18 +417,18 @@
                         <label for="edit_discipline_employee_id">Nhân viên <span class="text-danger">*</span></label>
                         <select class="form-control select2" id="edit_discipline_employee_id" name="employee_id" required>
                             <option value="">-- Chọn nhân viên --</option>
-                            <option value="1">NV001 - Nguyễn Văn A - Phòng IT</option>
-                            <option value="2" selected>NV002 - Trần Thị B - Phòng Marketing</option>
-                            <option value="3">NV003 - Lê Văn C - Phòng Kỹ thuật</option>
+                            @foreach($employees as $employee)
+                                <option value="{{ $employee->MaNV }}">{{ $employee->MaNV }} - {{ $employee->TenNV }} - {{ $employee->department ? $employee->department->TenPB : 'N/A' }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="edit_discipline_title">Tiêu đề <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="edit_discipline_title" name="title" value="Đi làm trễ" required>
+                        <input type="text" class="form-control" id="edit_discipline_title" name="title" required>
                     </div>
                     <div class="form-group">
                         <label for="edit_discipline_description">Mô tả</label>
-                        <textarea class="form-control" id="edit_discipline_description" name="description" rows="3">Đi làm trễ 3 lần trong tháng không có lý do</textarea>
+                        <textarea class="form-control" id="edit_discipline_description" name="description" rows="3"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="edit_discipline_amount">Số tiền phạt <span class="text-danger">*</span></label>
@@ -513,13 +436,13 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text">₫</span>
                             </div>
-                            <input type="number" class="form-control" id="edit_discipline_amount" name="amount" value="500000" min="0" required>
+                            <input type="number" class="form-control" id="edit_discipline_amount" name="amount" min="0" required>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="edit_discipline_date">Ngày <span class="text-danger">*</span></label>
                         <div class="input-group date" id="edit_discipline_date_picker" data-target-input="nearest">
-                            <input type="text" class="form-control datetimepicker-input" id="edit_discipline_date" name="date" value="15/04/2023" data-target="#edit_discipline_date_picker" required>
+                            <input type="text" class="form-control datetimepicker-input" id="edit_discipline_date" name="date" data-target="#edit_discipline_date_picker" required>
                             <div class="input-group-append" data-target="#edit_discipline_date_picker" data-toggle="datetimepicker">
                                 <div class="input-group-text"><i class="fa fa-calendar"></i></div>
                             </div>
@@ -545,7 +468,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="#" method="POST">
+            <form id="delete-form" action="{{ route('admin.reward-discipline.destroy', 0) }}" method="POST">
                 @csrf
                 @method('DELETE')
                 <div class="modal-body">
@@ -574,53 +497,17 @@
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.colVis.min.js"></script>
 
-<!-- Select2 -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
 <script>
     $(function () {
+        // Setup CSRF token cho tất cả ajax requests
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        
         // Initialize DataTables
-        $("#reward-discipline-table").DataTable({
-            "responsive": true,
-            "lengthChange": true,
-            "autoWidth": false,
-            "language": {
-                "search": "Tìm kiếm:",
-                "lengthMenu": "Hiển thị _MENU_ mục",
-                "zeroRecords": "Không tìm thấy dữ liệu",
-                "info": "Hiển thị _START_ đến _END_ của _TOTAL_ mục",
-                "infoEmpty": "Hiển thị 0 đến 0 của 0 mục",
-                "infoFiltered": "(lọc từ _MAX_ mục)",
-                "paginate": {
-                    "first": "Đầu",
-                    "last": "Cuối",
-                    "next": "Sau",
-                    "previous": "Trước"
-                }
-            }
-        });
-        
-        $("#reward-table").DataTable({
-            "responsive": true,
-            "lengthChange": true,
-            "autoWidth": false,
-            "language": {
-                "search": "Tìm kiếm:",
-                "lengthMenu": "Hiển thị _MENU_ mục",
-                "zeroRecords": "Không tìm thấy dữ liệu",
-                "info": "Hiển thị _START_ đến _END_ của _TOTAL_ mục",
-                "infoEmpty": "Hiển thị 0 đến 0 của 0 mục",
-                "infoFiltered": "(lọc từ _MAX_ mục)",
-                "paginate": {
-                    "first": "Đầu",
-                    "last": "Cuối",
-                    "next": "Sau",
-                    "previous": "Trước"
-                }
-            }
-        });
-        
-        $("#discipline-table").DataTable({
+        $("#reward-discipline-table, #reward-table, #discipline-table").DataTable({
             "responsive": true,
             "lengthChange": true,
             "autoWidth": false,
@@ -648,6 +535,58 @@
         // Initialize Datetime pickers
         $('#reward_date_picker, #discipline_date_picker, #edit_reward_date_picker, #edit_discipline_date_picker').datetimepicker({
             format: 'L'
+        });
+        
+        // Hàm truy cập an toàn cho các thuộc tính có ký tự đặc biệt
+        function getProperty(obj, key) {
+            return obj[key] || obj['LoaiKT/KL'] || null;
+        }
+        
+        // Hàm để kiểm tra loại khen thưởng/kỷ luật
+        function isReward(item) {
+            return getProperty(item, 'LoaiKT/KL') == 1;
+        }
+        
+        // Edit reward
+        $('.edit-reward-discipline').click(function() {
+            const id = $(this).data('id');
+            const isReward = $(this).data('target') === '#modal-edit-reward';
+            const form = isReward ? '#edit-reward-form' : '#edit-discipline-form';
+            
+            // Update form action URL
+            $(form).attr('action', "{{ url('admin/reward-discipline') }}/" + id);
+            
+            // Fetch reward/discipline data
+            $.ajax({
+                url: "{{ url('admin/reward-discipline') }}/" + id,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (isReward) {
+                        $('#edit_reward_employee_id').val(response.MaNV).trigger('change');
+                        $('#edit_reward_title').val(response.TieuDe);
+                        $('#edit_reward_description').val(response.NoiDung);
+                        $('#edit_reward_amount').val(response.SoTien);
+                        $('#edit_reward_date').val(response.formatted_date);
+                    } else {
+                        $('#edit_discipline_employee_id').val(response.MaNV).trigger('change');
+                        $('#edit_discipline_title').val(response.TieuDe);
+                        $('#edit_discipline_description').val(response.NoiDung);
+                        $('#edit_discipline_amount').val(response.SoTien);
+                        $('#edit_discipline_date').val(response.formatted_date);
+                    }
+                },
+                error: function(xhr) {
+                    toastr.error('Có lỗi xảy ra khi tải dữ liệu!');
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+        
+        // Delete confirmation
+        $('.delete-reward-discipline').click(function() {
+            const id = $(this).data('id');
+            $('#delete-form').attr('action', "{{ url('admin/reward-discipline') }}/" + id);
         });
     });
 </script>
