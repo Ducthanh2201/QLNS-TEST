@@ -28,6 +28,7 @@ class Employee extends Authenticatable
         'TenNV',
         'IDCV',
         'IDPB',
+        'Password',
         'NgaySinh',
         'GioiTinh',
         'DiaChi',

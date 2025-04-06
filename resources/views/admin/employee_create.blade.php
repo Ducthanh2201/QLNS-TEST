@@ -115,6 +115,22 @@
                                     <span class="invalid-feedback">{{ $message }}</span>
                                 @enderror
                             </div>
+
+                            <!-- Sau phần chọn chức vụ, thêm phần chọn phòng ban -->
+                            <div class="form-group">
+                                <label for="IDPB">Phòng ban <span class="text-danger">*</span></label>
+                                <select class="form-control @error('IDPB') is-invalid @enderror" id="IDPB" name="IDPB" required>
+                                    <option value="">-- Chọn phòng ban --</option>
+                                    @foreach(\App\Models\Department::where('TrangThai', 1)->get() as $department)
+                                        <option value="{{ $department->IDPB }}" {{ old('IDPB') == $department->IDPB ? 'selected' : '' }}>
+                                            {{ $department->TenPB }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('IDPB')
+                                    <span class="invalid-feedback">{{ $message }}</span>
+                                @enderror
+                            </div>
                             
                             <div class="form-group">
                                 <label for="HinhAnh">Hình ảnh</label>

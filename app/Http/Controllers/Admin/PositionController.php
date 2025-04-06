@@ -31,7 +31,7 @@ class PositionController extends Controller
         $chart_data = DB::table('chucvu')
             ->join('nhanvien', 'chucvu.IDCV', '=', 'nhanvien.IDCV')
             ->select('chucvu.TenCV', DB::raw('count(*) as employee_count'))
-            ->where('nhanvien.TrangThai', '!=', 2) // Không tính nhân viên đã xóa
+            ->where('nhanvien.TrangThai', '!=', 2) 
             ->groupBy('chucvu.IDCV', 'chucvu.TenCV')
             ->get();
 

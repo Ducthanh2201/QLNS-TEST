@@ -17,10 +17,8 @@ class AdminUserProvider extends EloquentUserProvider
      */
     public function validateCredentials(Authenticatable $user, array $credentials)
     {
-        // Lưu ý chúng ta cần sử dụng trường Password thay vì password
         $plain = $credentials['password'];
         
-        // Kiểm tra password trực tiếp với dạng plain text
         return $plain === $user->getAuthPassword();
     }
 }

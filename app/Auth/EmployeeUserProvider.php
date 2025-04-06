@@ -37,13 +37,11 @@ class EmployeeUserProvider extends EloquentUserProvider
             return null;
         }
 
-        // Thay đổi credentials từ 'employee_id' sang 'MaNV'
         if (isset($credentials['employee_id'])) {
             $credentials['MaNV'] = $credentials['employee_id'];
             unset($credentials['employee_id']);
         }
 
-        // Tiếp tục với phương thức cha
         return parent::retrieveByCredentials($credentials);
     }
 }

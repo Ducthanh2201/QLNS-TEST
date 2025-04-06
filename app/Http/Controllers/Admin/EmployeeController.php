@@ -8,7 +8,7 @@ use App\Models\Position;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB; // Thêm dòng này để import DB Facade
+use Illuminate\Support\Facades\DB; 
 use Illuminate\Validation\Rule;
 
 class EmployeeController extends Controller
@@ -74,13 +74,24 @@ class EmployeeController extends Controller
             'CCCD' => 'required|string|max:22|unique:nhanvien,CCCD',
             'DiaChi' => 'required|string|max:100',
             'IDCV' => 'required|exists:chucvu,IDCV',
+            'IDPB' => 'required|exists:phongban,IDPB', // Thêm dòng này
             'HinhAnh' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
         
-        // Hash mật khẩu nếu không được hash trước đó
-        if (!empty($validated['Password']) && substr($validated['Password'], 0, 4) !== '$2y$') {
-            $validated['Password'] = Hash::make($validated['Password']);
-        }
+        // Tạo dữ liệu để insert
+        $employeeData = [
+            'TenNV' => $validated['TenNV'],
+            'email' => $validated['email'],
+            'Password' => $validated['Password'], // Thêm mật khẩu vào dữ liệu insert
+            'GioiTinh' => $validated['GioiTinh'],
+            'NgaySinh' => $validated['NgaySinh'],
+            'DienThoai' => $validated['DienThoai'],
+            'CCCD' => $validated['CCCD'],
+            'DiaChi' => $validated['DiaChi'],
+            'IDCV' => $validated['IDCV'],
+            'IDPB' => $validated['IDPB'], // Thêm dòng này
+            'TrangThai' => Employee::STATUS_ACTIVE
+        ];
 
         // Xử lý hình ảnh - Upload trực tiếp vào thư mục public/nhanvien
         if ($request->hasFile('HinhAnh')) {
@@ -102,15 +113,12 @@ class EmployeeController extends Controller
             $file->move($uploadPath, $fileName);
             
             // Cập nhật tên file vào mảng dữ liệu
-            $validated['HinhAnh'] = $fileName;
+            $employeeData['HinhAnh'] = $fileName;
         }
-
-        // Thêm trạng thái mặc định là active
-        $validated['TrangThai'] = Employee::STATUS_ACTIVE;
 
         // Tạo nhân viên mới
         try {
-            Employee::create($validated);
+            Employee::create($employeeData);
             return redirect()->route('admin.employees.index')
                 ->with('success', 'Thêm nhân viên thành công!');
         } catch (\Exception $e) {

@@ -15,49 +15,40 @@ use Exception;
 
 class AttendanceController extends Controller
 {
-    /**
-     * Hiển thị danh sách chấm công
-     */
+   
     public function index(Request $request)
     {
-        // Xóa cache nếu có yêu cầu
         if ($request->has('clear_cache')) {
             \Illuminate\Support\Facades\Cache::flush();
             \Illuminate\Support\Facades\Session::flush();
             return redirect()->route('admin.attendance.index');
         }
         
-        // Lấy ngày được chọn hoặc hôm nay nếu không có
         $date = $request->input('date') ? Carbon::createFromFormat('d/m/Y', $request->input('date')) : Carbon::today();
         $departmentId = $request->input('department_id');
         $status = $request->input('status');
         $search = $request->input('search');
         $showDeleted = $request->boolean('show_deleted', false);
         
-        // Log để debug
         \Illuminate\Support\Facades\Log::info('Attendance Index');
         \Illuminate\Support\Facades\Log::info('Show deleted: ' . ($showDeleted ? 'true' : 'false'));
         \Illuminate\Support\Facades\Log::info('Date: ' . $date->format('Y-m-d'));
         
-        // Query danh sách chấm công
         $attendancesQuery = Attendance::with(['employee.department', 'employee.position', 'workType'])
             ->where('Nam', $date->year)
             ->where('Thang', $date->month)
             ->where('Ngay', $date->day);
         
-        // Thêm điều kiện lọc theo phòng ban nếu có
         if ($departmentId) {
             $attendancesQuery->whereHas('employee', function($query) use ($departmentId) {
                 $query->where('IDPB', $departmentId);
             });
         }
         
-        // Thêm điều kiện lọc theo trạng thái nếu có
         if ($status && $status != 'all') {
             $attendancesQuery->where('TrangThai', $status);
         }
         
-        // Thêm điều kiện lọc theo tìm kiếm nếu có
         if ($search) {
             $attendancesQuery->whereHas('employee', function($query) use ($search) {
                 $query->where('TenNV', 'like', '%' . $search . '%')
@@ -65,26 +56,20 @@ class AttendanceController extends Controller
             });
         }
         
-        // Nếu không hiện bản ghi đã xóa
         if (!$showDeleted) {
             $attendancesQuery->where('TrangThai', '!=', Attendance::STATUS_DELETED);
         }
         
-        // Debug SQL query
         \Illuminate\Support\Facades\Log::info('SQL: ' . $attendancesQuery->toSql());
         
-        // Lấy dữ liệu phân trang
         $attendances = $attendancesQuery->paginate(15);
         
-        // Debug số lượng bản ghi
         \Illuminate\Support\Facades\Log::info('Count: ' . $attendances->total());
         
-        // Lấy danh sách nhân viên, phòng ban, loại công
         $employees = Employee::where('TrangThai', Employee::STATUS_ACTIVE)->get();
         $departments = Department::where('TrangThai', Department::STATUS_ACTIVE)->get();
         $workTypes = WorkType::all();
         
-        // Lấy thống kê
         $statistics = $this->getStatistics($date, $departmentId);
         
         return view('admin.attendance', compact(
@@ -97,12 +82,8 @@ class AttendanceController extends Controller
         ));
     }
 
-    /**
-     * Thêm bản ghi chấm công mới
-     */
     public function store(Request $request)
     {
-        // Validate dữ liệu đầu vào
         $validated = $request->validate([
             'employee_id' => 'required|exists:nhanvien,MaNV',
             'date' => 'required|date_format:d/m/Y',
@@ -113,10 +94,8 @@ class AttendanceController extends Controller
             'note' => 'nullable|string'
         ]);
         
-        // Parse ngày và giờ
         $date = Carbon::createFromFormat('d/m/Y', $validated['date']);
         
-        // Kiểm tra xem đã tồn tại bản ghi nào cho nhân viên này trong ngày chưa
         $existingRecord = Attendance::where('Nam', $date->year)
             ->where('Thang', $date->month)
             ->where('Ngay', $date->day)
