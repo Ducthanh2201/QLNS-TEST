@@ -17,14 +17,14 @@
                 <div class="text-center">
                     @php
                         $employee = Auth::guard('employee')->user();
-                        $avatar = $employee->HinhAnh ? asset('storage/employees/'.$employee->HinhAnh) : asset('img/default-avatar.png');
+                        $avatar = $employee->HinhAnh ? asset('storage/nhanvien/'.$employee->HinhAnh) : asset('img/default-avatar.png');
                     @endphp
-                    <img class="profile-user-img img-fluid img-circle" src="{{ $avatar }}" alt="Ảnh đại diện">
+                    <img class="profile-user-img img-fluid img-circle" id="current-avatar" src="{{ $avatar }}" alt="Ảnh đại diện">
                 </div>
 
                 <h3 class="profile-username text-center">{{ $employee->TenNV }}</h3>
 
-                <p class="text-muted text-center">{{ $employee->ChucVu->TenCV ?? 'Nhân viên' }}</p>
+                <p class="text-muted text-center">{{ $employee->position->TenCV ?? 'Nhân viên' }}</p>
 
                 <ul class="list-group list-group-unbordered mb-3">
                     <li class="list-group-item">
@@ -93,41 +93,58 @@
                 <div class="tab-content">
                     <!-- Settings Tab -->
                     <div class="active tab-pane" id="settings">
-                        <form class="form-horizontal">
+                        <form class="form-horizontal" action="{{ route('employee.profile.update') }}" method="POST">
+                            @csrf
                             <div class="form-group row">
                                 <label for="inputName" class="col-sm-2 col-form-label">Họ tên</label>
                                 <div class="col-sm-10">
-                                    <input type="text" class="form-control" id="inputName" placeholder="Họ tên" value="{{ $employee->TenNV }}">
+                                    <input type="text" class="form-control @error('inputName') is-invalid @enderror" id="inputName" name="inputName" placeholder="Họ tên" value="{{ old('inputName', $employee->TenNV) }}">
+                                    @error('inputName')
+                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    @enderror
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label for="inputEmail" class="col-sm-2 col-form-label">Email</label>
                                 <div class="col-sm-10">
-                                    <input type="email" class="form-control" id="inputEmail" placeholder="Email" value="{{ $employee->email }}">
+                                    <input type="email" class="form-control @error('inputEmail') is-invalid @enderror" id="inputEmail" name="inputEmail" placeholder="Email" value="{{ old('inputEmail', $employee->email) }}">
+                                    @error('inputEmail')
+                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    @enderror
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label for="inputPhone" class="col-sm-2 col-form-label">Điện thoại</label>
                                 <div class="col-sm-10">
-                                    <input type="text" class="form-control" id="inputPhone" placeholder="Điện thoại" value="{{ $employee->DienThoai }}">
+                                    <input type="text" class="form-control @error('inputPhone') is-invalid @enderror" id="inputPhone" name="inputPhone" placeholder="Điện thoại" value="{{ old('inputPhone', $employee->DienThoai) }}">
+                                    @error('inputPhone')
+                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    @enderror
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label for="inputAddress" class="col-sm-2 col-form-label">Địa chỉ</label>
                                 <div class="col-sm-10">
-                                    <textarea class="form-control" id="inputAddress" placeholder="Địa chỉ">{{ $employee->DiaChi }}</textarea>
+                                    <textarea class="form-control @error('inputAddress') is-invalid @enderror" id="inputAddress" name="inputAddress" placeholder="Địa chỉ">{{ old('inputAddress', $employee->DiaChi) }}</textarea>
+                                    @error('inputAddress')
+                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    @enderror
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label for="inputPassword" class="col-sm-2 col-form-label">Mật khẩu mới</label>
                                 <div class="col-sm-10">
-                                    <input type="password" class="form-control" id="inputPassword" placeholder="Mật khẩu mới">
+                                    <input type="password" class="form-control @error('inputPassword') is-invalid @enderror" id="inputPassword" name="inputPassword" placeholder="Mật khẩu mới">
+                                    <small class="form-text text-muted">Để trống nếu không muốn thay đổi mật khẩu</small>
+                                    @error('inputPassword')
+                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    @enderror
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label for="inputPasswordConfirm" class="col-sm-2 col-form-label">Xác nhận mật khẩu</label>
+                                <label for="inputPassword_confirmation" class="col-sm-2 col-form-label">Xác nhận mật khẩu</label>
                                 <div class="col-sm-10">
-                                    <input type="password" class="form-control" id="inputPasswordConfirm" placeholder="Xác nhận mật khẩu">
+                                    <input type="password" class="form-control" id="inputPassword_confirmation" name="inputPassword_confirmation" placeholder="Xác nhận mật khẩu">
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -281,12 +298,13 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form enctype="multipart/form-data">
+                <form id="avatarForm" enctype="multipart/form-data">
+                    @csrf
                     <div class="form-group">
                         <label for="avatarFile">Chọn ảnh</label>
                         <div class="input-group">
                             <div class="custom-file">
-                                <input type="file" class="custom-file-input" id="avatarFile" accept="image/*">
+                                <input type="file" class="custom-file-input" id="avatarFile" name="avatar" accept="image/*">
                                 <label class="custom-file-label" for="avatarFile">Chọn file</label>
                             </div>
                         </div>
@@ -294,11 +312,12 @@
                     <div class="preview text-center">
                         <img id="preview-avatar" src="{{ $avatar }}" alt="Preview" class="img-thumbnail" style="max-height: 200px;">
                     </div>
+                    <div id="avatar-error" class="alert alert-danger mt-2" style="display: none;"></div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary">Lưu thay đổi</button>
+                <button type="button" class="btn btn-primary" id="saveAvatar">Lưu thay đổi</button>
             </div>
         </div>
     </div>
@@ -319,6 +338,60 @@ $(function() {
             reader.readAsDataURL(this.files[0]);
             $('.custom-file-label').text(this.files[0].name);
         }
+    });
+    
+    // Xử lý upload avatar
+    $("#saveAvatar").click(function() {
+        var formData = new FormData($("#avatarForm")[0]);
+        $("#avatar-error").hide(); // Ẩn lỗi cũ nếu có
+        
+        $.ajax({
+            url: "{{ route('employee.profile.avatar') }}",
+            type: "POST",
+            data: formData,
+            contentType: false,
+            processData: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            beforeSend: function() {
+                // Hiển thị loading 
+                $("#saveAvatar").prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang xử lý...');
+            },
+            success: function(response) {
+                if(response.success) {
+                    // Cập nhật ảnh đại diện trên trang
+                    $("#current-avatar").attr('src', response.avatar);
+                    
+                    // Cập nhật tất cả các ảnh đại diện khác trên trang
+                    $(".user-image, .img-circle.img-bordered-sm").attr('src', response.avatar);
+                    
+                    // Hiển thị thông báo thành công
+                    Swal.fire({
+                        title: 'Thành công!',
+                        text: response.message,
+                        icon: 'success',
+                        confirmButtonText: 'Đóng'
+                    });
+                    
+                    // Đóng modal
+                    $("#avatarModal").modal('hide');
+                }
+            },
+            error: function(xhr) {
+                console.error("Error details:", xhr);
+                // Hiển thị lỗi
+                if(xhr.responseJSON && xhr.responseJSON.error) {
+                    $("#avatar-error").text(xhr.responseJSON.error).show();
+                } else {
+                    $("#avatar-error").text("Có lỗi xảy ra khi tải lên ảnh. Vui lòng thử lại.").show();
+                }
+            },
+            complete: function() {
+                // Khôi phục nút
+                $("#saveAvatar").prop('disabled', false).html('Lưu thay đổi');
+            }
+        });
     });
 });
 </script>

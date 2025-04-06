@@ -155,18 +155,22 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
 Route::prefix('employee')->name('employee.')->middleware(EmployeeAuth::class)->group(function () {
     // Dashboard
     Route::get('/dashboard', function () {
-        return view('employees.dashboard');
+        $attendanceController = new \App\Http\Controllers\Employee\AttendanceController();
+        $todayAttendance = $attendanceController->getTodayAttendance();
+        return view('employees.dashboard', compact('todayAttendance'));
     })->name('dashboard');
     
     // Profile
-    Route::get('/profile', function () {
-        return view('employees.profile');
-    })->name('profile');
+    Route::get('/profile', [\App\Http\Controllers\Employee\ProfileController::class, 'index'])->name('profile');
+    Route::post('/profile/update', [\App\Http\Controllers\Employee\ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/avatar', [\App\Http\Controllers\Employee\ProfileController::class, 'updateAvatar'])->name('profile.avatar');
     
     // Attendance
-    Route::get('/attendance', function () {
-        return view('employees.attendance');
-    })->name('attendance');
+    Route::get('/attendance', [\App\Http\Controllers\Employee\AttendanceController::class, 'index'])->name('attendance');
+    
+    // Check-in và Check-out 
+    Route::post('/check-in', [\App\Http\Controllers\Employee\AttendanceController::class, 'checkIn'])->name('check-in');
+    Route::post('/check-out', [\App\Http\Controllers\Employee\AttendanceController::class, 'checkOut'])->name('check-out');
     
     // Leave Request
     Route::get('/leave-request', function () {
@@ -177,17 +181,6 @@ Route::prefix('employee')->name('employee.')->middleware(EmployeeAuth::class)->g
     Route::get('/salary', function () {
         return view('employees.salary');
     })->name('salary');
-    
-    // Check-in và Check-out có thể là POST routes
-    Route::post('/check-in', function () {
-        // Logic xử lý check-in
-        return redirect()->back()->with('success', 'Check-in thành công!');
-    })->name('check-in');
-    
-    Route::post('/check-out', function () {
-        // Logic xử lý check-out
-        return redirect()->back()->with('success', 'Check-out thành công!');
-    })->name('check-out');
 });
 
 // Fallback route

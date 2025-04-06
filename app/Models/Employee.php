@@ -12,8 +12,8 @@ class Employee extends Authenticatable
 
     protected $table = 'nhanvien';
     protected $primaryKey = 'MaNV';
-    protected $keyType = 'string';
-    public $incrementing = false;
+    protected $keyType = 'int';
+    public $incrementing = true;
     
     // Tắt timestamps
     public $timestamps = false;
@@ -31,11 +31,11 @@ class Employee extends Authenticatable
         'NgaySinh',
         'GioiTinh',
         'DiaChi',
-        'SDT',
-        'Email',
+        'DienThoai',
+        'email',
         'CCCD',
-        'NgayVaoLam',
-        'TrangThai'
+        'TrangThai',
+        'HinhAnh'
     ];
 
     protected $hidden = [

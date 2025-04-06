@@ -62,7 +62,7 @@
             <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
                 @php
                     $employee = Auth::guard('employee')->user();
-                    $avatar = $employee->HinhAnh ? asset('storage/employees/'.$employee->HinhAnh) : asset('img/default-avatar.png');
+                    $avatar = $employee->HinhAnh ? asset('storage/nhanvien/'.$employee->HinhAnh) : asset('img/default-avatar.png');
                 @endphp
                 <img src="{{ $avatar }}" class="user-image img-circle elevation-2" alt="User Image">
                 <span class="d-none d-md-inline">{{ $employee->TenNV }}</span>

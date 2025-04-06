@@ -82,6 +82,15 @@ class TimeKeeping extends Model
                 }
             }
         });
+
+        static::creating(function ($timeKeeping) {
+            // Đặt giá trị mặc định cho các trường nếu chúng chưa được đặt
+            if (!isset($timeKeeping->GhiChu)) {
+                $timeKeeping->GhiChu = '';
+            }
+            
+            // Các giá trị mặc định khác nếu cần
+        });
     }
 
     /**
