@@ -146,6 +146,9 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
         ->name('reward-discipline.update');
     Route::delete('/reward-discipline/{id}', [App\Http\Controllers\Admin\RewardDisciplineController::class, 'destroy'])
         ->name('reward-discipline.destroy');
+    
+    // Statistics Route
+    Route::get('/statistics', [App\Http\Controllers\Admin\StatisticsController::class, 'index'])->name('statistics.index');
 });
 
 // Employee Routes
